@@ -1,0 +1,212 @@
+<!-- <!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Struk Tiket</title>
+    <style>
+        body {
+            width: 58mm;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .line {
+            border-top: 1px dashed #000;
+            margin: 4px 0;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        td {
+            vertical-align: top;
+        }
+
+        img.logo {
+            max-width: 40px;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body onload="window.print()">
+    <div class="center">
+        {{-- Logo --}}
+        <img src="{{ asset('images/logo.png') }}" alt="Logo" class="logo">
+
+        {{-- Nama Event / Tempat Tiket --}}
+        <h3>TIKET</h3>
+
+        {{-- Alamat --}}
+        <p>Jl. Raya Sukabumi No. 123<br>Sukabumi, Jawa Barat</p>
+
+        {{-- Tanggal --}}
+        <small>{{ \Carbon\Carbon::parse($tiket->tanggal)->format('d/m/Y') }}</small>
+
+    </div>
+
+    <div class="line"></div>
+
+    {{-- Nama Karyawan --}}
+    <p>
+        Pelanggan : <b>{{ $tiket->nama_pelanggan ?? '-' }}</b><br>
+        Kasir : <b>{{ $tiket->karyawan->nama ?? '-' }}</b>
+    </p>
+
+    <div class="line"></div>
+
+    <table>
+        @foreach($tiket->details as $d)
+            <tr>
+                <td>{{ $d->jumlah }} x {{ $d->jenisTiket->jenis_tiket }}</td>
+                <td style="text-align: right;">Rp {{ number_format($d->subtotal, 0, ',', '.') }}</td>
+            </tr>
+        @endforeach
+    </table>
+
+    <div class="line"></div>
+    <p><b>Total: Rp {{ number_format($tiket->subtotal, 0, ',', '.') }}</b></p>
+
+    <div class="center">
+        <p>~ Terima Kasih ~</p>
+    </div>
+
+</body>
+
+</html>
+<!-- <!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tiket Masuk Kolam Renang</title>
+    <style>
+        body {
+            width: 58mm;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .ticket {
+            page-break-after: always;
+            padding: 6px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .line {
+            border-top: 1px dashed #000;
+            margin: 5px 0;
+        }
+
+        img.logo {
+            max-width: 45px;
+            display: block;
+            margin: 0 auto 3px auto;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .info-table td {
+            padding: 1px 0;
+            vertical-align: top;
+        }
+
+        .label {
+            width: 50%;
+            white-space: nowrap;
+        }
+
+        .value {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        p {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body onload="window.print()">
+
+    @foreach ($tiketMasukList as $t)
+        <div class="ticket">
+            <div class="center">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="logo">
+                <strong>🏊‍♂️ KOLAM RENANG "TIRTA INDAH" 🏊‍♀️</strong>
+            </div>
+
+            <div class="line"></div>
+
+            <table class="info-table">
+                <tr>
+                    <td class="label">Alamat :</td>
+                    <td class="value">Jl. Melati No. 45, Bandung</td>
+                </tr>
+                <tr>
+                    <td class="label">Telp :</td>
+                    <td class="value">(022) 789-1234</td>
+                </tr>
+                <tr>
+                    <td class="label">Instagram :</td>
+                    <td class="value">@kolamtirtaindah</td>
+                </tr>
+            </table>
+
+            <div class="line"></div>
+
+            <table class="info-table">
+                <tr>
+                    <td class="label">Tanggal Kunjungan :</td>
+                    <td class="value">{{ \Carbon\Carbon::parse($t['tanggal'])->translatedFormat('d F Y') }}</td>
+                </tr>
+                <tr>
+                    <td class="label">No. Tiket :</td>
+                    <td class="value">{{ $t['no_tiket'] }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Jenis Tiket :</td>
+                    <td class="value">{{ $t['nama_tiket'] }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Harga Tiket :</td>
+                    <td class="value">Rp {{ number_format($t['harga'], 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Jam Operasional :</td>
+                    <td class="value">07.00 - 18.00 WIB</td>
+                </tr>
+                <tr>
+                    <td class="label">Kasir :</td>
+                    <td class="value">{{ $tiket->karyawan->nama ?? '-' }}</td>
+                </tr>
+            </table>
+
+            <div class="line"></div>
+
+            <div class="center">
+                <p><strong>TERIMA KASIH & SELAMAT BERENANG! 💦</strong></p>
+            </div>
+
+            <div class="line"></div>
+        </div>
+    @endforeach
+
+</body>
+
+</html> --> -->
