@@ -15,6 +15,7 @@ use App\Http\Controllers\CafeController;
 use App\Http\Controllers\BarangMasukController;
 use App\Models\Karyawan;
 use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\PengeluaranController;
 
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -99,6 +100,13 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('admin/riwayat_tiket_detail/{id}', [TiketController::class, 'destroyDetail'])->name('riwayat_tiket_detail.destroy');
         Route::put('admin/riwayat_tiket_detail/{id}', [TiketController::class, 'updateDetail'])->name('riwayat_tiket_detail.update');
         Route::put('admin/tiket-detail/{id}', [TiketController::class, 'updateDetail'])->name('tiketdetail.update');
+
+        //pengeluaran 
+        Route::get('admin/pengeluaran', [PengeluaranController::class, 'index'])->name('pengeluaran.index');
+        Route::get('admin/pengeluaran/detail', [PengeluaranController::class, 'show'])->name('pengeluaran.show');
+        Route::post('admin/pengeluaran/store', [PengeluaranController::class, 'store'])->name('pengeluaran.store');
+        Route::post('admin/pengeluaran/edit/{pengeluaran}', [PengeluaranController::class, 'update'])->name('pengeluaran.update');
+        Route::delete('admin/pengeluaran/delete/{pengeluaran}', [PengeluaranController::class, 'destroy'])->name('pengeluaran.destroy');
 
     });
 
