@@ -27,21 +27,23 @@
                         </select>
                     </div>
                     <div>
-                        <input type="text" id="searchMenu" class="form-control form-control-sm" placeholder="Cari menu..."
-                            style="width: 200px;">
+                        <input type="text" id="searchMenu" class="form-control form-control-sm"
+                            placeholder="Cari menu..." style="width: 200px;">
                     </div>
                 </div>
 
                 <!-- Grid card max 3 baris -->
                 <div class="overflow-x-auto">
-                    <div class="d-grid" style="
+                    <div class="d-grid"
+                        style="
                     display: grid;
                     grid-auto-flow: column;
                     grid-template-rows: repeat(3, auto);
                     grid-auto-columns: 180px;
                     gap: 12px;
                     width: max-content;
-                 " id="menuContainer">
+                 "
+                        id="menuContainer">
 
                         @foreach ($menus as $menu)
                             <div class="card text-bg-primary h-100 menu-card" style="width: 180px;"
@@ -65,7 +67,8 @@
                                             style="width:28px; height:28px;" data-id="{{ $menu->id }}"
                                             data-nama="{{ $menu->stokBarang->nama_barang }}"
                                             data-satuan="{{ $menu->stokBarang->satuan->satuan }}"
-                                            data-harga="{{ $menu->harga_jual }}">
+                                            data-harga="{{ $menu->harga_jual }}"
+                                            data-stok="{{ $menu->stokBarang->total_stok }}">
                                             <i class='bx bx-plus' style="font-size:14px;"></i>
                                         </button>
 
@@ -167,7 +170,7 @@
                 document.getElementById("kembalianInput").value = kembali;
             }
 
-            document.addEventListener("DOMContentLoaded", function () {
+            document.addEventListener("DOMContentLoaded", function() {
                 const inputBayar = document.getElementById("dibayarkan");
                 const form = document.getElementById("formKasir");
                 const detailTable = document.querySelector("tbody.table-border-bottom-0");
@@ -221,7 +224,13 @@
                 function tambahPesanan(menu_id, nama, harga, satuan) {
                     const existing = pesanan.find(p => p.menu_id === menu_id);
                     if (existing) existing.jumlah++;
-                    else pesanan.push({ menu_id, nama, satuan, harga, jumlah: 1 });
+                    else pesanan.push({
+                        menu_id,
+                        nama,
+                        satuan,
+                        harga,
+                        jumlah: 1
+                    });
                     renderTable();
                 }
 
@@ -236,7 +245,7 @@
                 }
 
                 // Hapus menu global
-                window.hapusPesanan = function (menu_id) {
+                window.hapusPesanan = function(menu_id) {
                     pesanan = pesanan.filter(p => p.menu_id !== menu_id);
                     renderTable();
                 }
@@ -252,12 +261,29 @@
                         const nama = btnPlus.dataset.nama;
                         const satuan = btnPlus.dataset.satuan;
                         const harga = Number(btnPlus.dataset.harga) || 0;
+                        const stok = parseInt(btnPlus.dataset.stok);
 
+                        const existing = pesanan.find(p => p.menu_id === menu_id);
+                        const jumlahSekarang = existing ? existing.jumlah : 0;
+
+                        // 🚫 jika melebihi stok
+                        if (jumlahSekarang >= stok) {
+                            Swal.fire({
+                                icon: "warning",
+                                title: "Stok tidak cukup",
+                                text: `Stok ${nama} tersisa ${stok}`,
+                                confirmButtonText: "OK"
+                            });
+                            return;
+                        }
+
+                        // ✅ jika masih ada stok
                         tambahPesanan(menu_id, nama, harga, satuan);
 
                         const pesananItem = pesanan.find(p => p.menu_id === menu_id);
                         qtyDisplay.textContent = pesananItem ? pesananItem.jumlah : 0;
                     });
+
 
                     btnMinus.addEventListener("click", () => {
                         const menu_id = parseInt(btnMinus.dataset.id);
@@ -280,7 +306,8 @@
                         const title = card.querySelector(".card-title").textContent.toLowerCase();
                         const cardKategori = (card.getAttribute("data-kategori") || "").toLowerCase();
 
-                        card.style.display = (title.includes(searchText) && (kategori === "" || kategori === cardKategori)) ? "block" : "none";
+                        card.style.display = (title.includes(searchText) && (kategori === "" || kategori ===
+                            cardKategori)) ? "block" : "none";
                     });
                 }
 
@@ -288,7 +315,7 @@
                 filterKategori.addEventListener("change", filterCards);
 
                 // Event submit form: isi semua hidden input
-                form.addEventListener("submit", function (e) {
+                form.addEventListener("submit", function(e) {
                     // Cegah submit jika pesanan kosong
                     if (pesanan.length === 0) {
                         e.preventDefault();
@@ -321,7 +348,7 @@
 
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        @if(session('error'))
+        @if (session('error'))
             <script>
                 Swal.fire({
                     icon: 'error',
@@ -331,7 +358,7 @@
             </script>
         @endif
 
-        @if(session('success'))
+        @if (session('success'))
             <script>
                 Swal.fire({
                     icon: 'success',

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\CafeController;
 use App\Http\Controllers\BarangMasukController;
-use App\Models\Karyawan;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\KaryawanController;
 
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -100,7 +100,27 @@ Route::middleware(['auth'])->group(function () {
         Route::put('admin/riwayat_tiket_detail/{id}', [TiketController::class, 'updateDetail'])->name('riwayat_tiket_detail.update');
         Route::put('admin/tiket-detail/{id}', [TiketController::class, 'updateDetail'])->name('tiketdetail.update');
 
+        // ---------------- BOOKING ----------------
+        Route::get('admin/booking', [BookingController::class, 'index'])
+            ->name('booking.index');
+
+        Route::post('admin/booking', [BookingController::class, 'store'])
+            ->name('booking.store');
+
+        Route::put('admin/booking/{id}', [BookingController::class, 'update'])
+            ->name('booking.update');
+
+        Route::delete('admin/booking/{id}', [BookingController::class, 'destroy'])
+            ->name('booking.destroy');
+
+        Route::patch('admin/booking/{id}/status/{status}', [BookingController::class, 'updateStatus'])
+            ->name('booking.status');
+
+        Route::post('/admin/booking/{id}/hadir', [BookingController::class, 'hadir']);
+
     });
+
+
 
 
     Route::middleware('checkRole:admin,kasir')->group(function () {
