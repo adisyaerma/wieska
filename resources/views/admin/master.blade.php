@@ -163,6 +163,11 @@
                                     <div class="text-truncate" data-i18n="Analytics">Booking</div>
                                 </a>
                             </li>
+                            <li class="menu-item @yield('hutangActive')">
+                                <a href="/admin/hutang" class="menu-link">
+                                    <div class="text-truncate" data-i18n="Analytics">Hutang</div>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="menu-item @yield('laporanActive')">
@@ -185,6 +190,11 @@
                             <li class="menu-item @yield('stokBarangActive')">
                                 <a href="/admin/stok_barang" class="menu-link">
                                     <div class="text-truncate" data-i18n="Analytics">Stok Barang</div>
+                                </a>
+                            </li>
+                            <li class="menu-item @yield('labaActive')">
+                                <a href="/admin/laba" class="menu-link">
+                                    <div class="text-truncate" data-i18n="Analytics">Laba</div>
                                 </a>
                             </li>
                         </ul>

@@ -4,62 +4,64 @@ namespace App\Http\Controllers;
 
 use App\Models\Hutang;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class HutangController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        // update otomatis status jatuh tempo
+        Hutang::where('status', 'Belum Lunas')
+            ->whereDate('jatuh_tempo', '<', now())
+            ->update(['status' => 'Jatuh Tempo']);
+
+        $hutangs = Hutang::orderBy('tanggal', 'desc')->get();
+        return view('admin.hutang', compact('hutangs'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'tanggal' => 'required|date',
+            'pihak' => 'required',
+            'total_hutang' => 'required|integer',
+            'jatuh_tempo' => 'required|date',
+        ]);
+
+        Hutang::create([
+            'tanggal' => $request->tanggal,
+            'pihak' => $request->pihak,
+            'keterangan' => $request->keterangan,
+            'total_hutang' => $request->total_hutang,
+            'jatuh_tempo' => $request->jatuh_tempo,
+            'status' => 'Belum Lunas',
+        ]);
+
+        return back()->with('success', 'Hutang ditambahkan');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Hutang $hutang)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Hutang $hutang)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Hutang $hutang)
     {
-        //
+        $hutang->update($request->all());
+        return back()->with('success', 'Hutang diupdate');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Hutang $hutang)
     {
-        //
+        $hutang->delete();
+        return back()->with('success', 'Hutang dihapus');
+    }
+
+    // ✅ konfirmasi lunas
+    public function lunas(Hutang $hutang)
+    {
+        if ($hutang->status === 'Belum Lunas') {
+            $hutang->update([
+                'status' => 'Lunas',
+                'tanggal_bayar' => now(),
+            ]);
+        }
+
+        return response()->json(['success' => true]);
     }
 }

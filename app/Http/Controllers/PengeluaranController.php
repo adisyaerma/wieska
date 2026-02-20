@@ -18,14 +18,14 @@ class PengeluaranController extends Controller
                 $join->on('pengeluarans.refrensi_id', '=', 'karyawan.id')
                     ->where('pengeluarans.jenis_pengeluaran', '=', 'Gaji');
             })
-            ->leftJoin('hutangs', function ($join) {
-                $join->on('pengeluarans.refrensi_id', '=', 'hutangs.id')
+            ->leftJoin('hutang', function ($join) {
+                $join->on('pengeluarans.refrensi_id', '=', 'hutang.id')
                     ->where('pengeluarans.jenis_pengeluaran', '=', 'Bayar Hutang');
             })
             ->select(
                 'pengeluarans.*',
                 'karyawan.nama as nama',
-                'hutangs.name as name'
+                'hutang.pihak as pihak'
             )
             ->orderBy('pengeluarans.tanggal', 'desc')
             ->get();
@@ -96,14 +96,14 @@ class PengeluaranController extends Controller
                 $join->on('pengeluarans.refrensi_id', '=', 'karyawan.id')
                     ->where('pengeluarans.jenis_pengeluaran', 'Gaji');
             })
-            ->leftJoin('hutangs', function ($join) {
-                $join->on('pengeluarans.refrensi_id', '=', 'hutangs.id')
+            ->leftJoin('hutang', function ($join) {
+                $join->on('pengeluarans.refrensi_id', '=', 'hutang.id')
                     ->where('pengeluarans.jenis_pengeluaran', 'Bayar Hutang');
             })
             ->select(
                 'pengeluarans.*',
                 'karyawan.nama as nama',
-                'hutangs.name as name'
+                'hutang.pihak as pihak'
             );
 
         $tanggalAwal = Carbon::createFromFormat('Y-m-', $request->tanggal_awal)
@@ -130,7 +130,7 @@ class PengeluaranController extends Controller
                     'jenis_pengeluaran' => $item->jenis_pengeluaran,
                     'tujuan' => match ($item->jenis_pengeluaran) {
                         'Gaji' => 'Gaji - ' . ($item->nama ?? '-'),
-                        'Bayar Hutang' => 'Bayar Hutang - ' . ($item->name ?? '-'),
+                        'Bayar Hutang' => 'Bayar Hutang - ' . ($item->pihak ?? '-'),
                         default => $item->tujuan_pengeluaran
                     },
                     'nominal' => 'Rp' . number_format($item->nominal_pengeluaran, 0, ',', '.'),

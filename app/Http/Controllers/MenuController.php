@@ -63,7 +63,7 @@ class MenuController extends Controller
 
         $request->validate([
             'harga_jual' => 'required|numeric',
-            'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'stok_barang_id' => 'nullable|exists:stok_barang,id',
         ]);
 

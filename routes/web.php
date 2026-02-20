@@ -15,6 +15,10 @@ use App\Http\Controllers\CafeController;
 use App\Http\Controllers\BarangMasukController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\HutangController;
+use App\Http\Controllers\LabaController;
+use App\Http\Controllers\DetailLabaTiketController;
+use App\Http\Controllers\DetailLabaCafeController;
 use App\Http\Controllers\PengeluaranController;
 
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -125,6 +129,33 @@ Route::middleware(['auth'])->group(function () {
             ->name('booking.status');
 
         Route::post('/admin/booking/{id}/hadir', [BookingController::class, 'hadir']);
+
+                // ---------------- HUTANG ----------------
+        Route::get('admin/hutang', [HutangController::class, 'index'])
+            ->name('hutang.index');
+
+        Route::post('admin/hutang', [HutangController::class, 'store'])
+            ->name('hutang.store');
+
+        Route::put('admin/hutang/{hutang}', [HutangController::class, 'update'])
+            ->name('hutang.update');
+
+        Route::delete('admin/hutang/{hutang}', [HutangController::class, 'destroy'])
+            ->name('hutang.destroy');
+
+        Route::patch('admin/hutang/{hutang}/lunas', [HutangController::class, 'lunas'])
+            ->name('hutang.lunas');
+
+        Route::get('admin/laba', [LabaController::class, 'index'])->name('laba.index');
+
+        Route::get('admin/laba/tiket/{tanggal}', [DetailLabaTiketController::class, 'index'])
+            ->name('laba.detail.tiket');
+
+        Route::get('admin/laba/cafe/{tanggal}', [DetailLabaCafeController::class, 'index'])
+            ->name('laba.detail.cafe');
+
+
+
     });
 
 
