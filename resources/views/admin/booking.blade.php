@@ -108,7 +108,20 @@
 
 
 
-            <div class="table-responsive text-nowrap">
+            <div class="table-responsive text-nowrap p-3">
+
+                <!-- Baris atas: Filter tanggal (kiri) + Search (kanan bawaan DataTables) -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2 ms-3" id="filterContainer">
+                        <label for="minDate" class="form-label mb-0 fw-medium">Dari:</label>
+                        <input type="date" id="minDate" class="form-control form-control-sm" style="width: 160px;">
+                        <label for="maxDate" class="form-label mb-0 fw-medium">Sampai:</label>
+                        <input type="date" id="maxDate" class="form-control form-control-sm" style="width: 160px;">
+                    </div>
+
+                    <!-- Tempat Search DataTables -->
+                    <div id="tableSearchContainer"></div>
+                </div>
                 <table class="table" id="bookingTable">
                     <thead>
                         <tr>
@@ -140,7 +153,7 @@
                                 <td>
                                     @if ($booking->status == 'Pending')
                                         <span class="badge bg-warning mb-1 d-block">Pending</span>
-                                        <button class="btn btn-sm btn-primary btn-hadir" data-id="{{ $booking->id }}">
+                                        <button class="btn btn-sm btn-success btn-hadir" data-id="{{ $booking->id }}">
                                             Konfirmasi Hadir
                                         </button>
                                     @elseif ($booking->status == 'Hadir')
@@ -202,7 +215,8 @@
                                 {{-- Tanggal --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Tanggal Acara</label>
-                                    <input type="date" name="tanggal" value="{{ \Carbon\Carbon::parse($booking->tanggal)->format('Y-m-d') }}"
+                                    <input type="date" name="tanggal"
+                                        value="{{ \Carbon\Carbon::parse($booking->tanggal)->format('Y-m-d') }}"
                                         class="form-control" required>
                                 </div>
 
@@ -237,10 +251,11 @@
                                 {{-- Harga --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Harga</label>
-                                    <input type="text" oninput="formatHarga(this, '{{ $booking->id }}')"
+                                    <input type="text" oninput="formatHarga(this, '_{{ $booking->id }}')"
                                         name="harga" class="form-control"
                                         value="Rp {{ number_format($booking->harga, 0, ',', '.') }}" required>
-                                    <input type="hidden" name="harga" value="{{ $booking->harga }}" id="harga_value_{{ $booking->id }}">
+                                    <input type="hidden" name="harga" value="{{ $booking->harga }}"
+                                        id="harga_value_{{ $booking->id }}">
 
                                 </div>
 
@@ -268,7 +283,7 @@
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary">Update</button>
+                            <button type="submit" class="btn btn-primary">Ubah</button>
                         </div>
                     </form>
                 </div>
@@ -302,7 +317,7 @@
         </style>
 
         <script>
-            function formatRupiah(el, suffix = '') {
+            function formatHarga(el, suffix = '') {
                 const angka = el.value.replace(/\D/g, '');
                 el.value = angka ? 'Rp ' + new Intl.NumberFormat('id-ID').format(angka) : '';
                 document.getElementById('harga_value' + suffix).value = angka;
@@ -311,22 +326,80 @@
 
         <script>
             $(document).ready(function() {
+                // 🔹 Deteksi otomatis kolom tanggal
+                let dateColIndex = 1;
+                $('#bookingTable thead th').each(function(i) {
+                    const txt = $(this).text().toLowerCase();
+                    if (txt.includes('tgl') || txt.includes('tanggal')) {
+                        dateColIndex = i;
+                        return false;
+                    }
+                });
+
+                // 🔹 Fungsi bantu
+                function stripTags(html) {
+                    return $('<div/>').html(html).text().trim();
+                }
+
+                function parseCellDate(s) {
+                    if (!s) return null;
+                    s = s.trim();
+                    const match = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+                    if (match) return new Date(match[3], match[2] - 1, match[1]);
+                    const dt = new Date(s);
+                    return isNaN(dt) ? null : new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+                }
+
+                function parseInputDate(val) {
+                    if (!val) return null;
+                    const parts = val.split('-');
+                    return new Date(parts[0], parts[1] - 1, parts[2]);
+                }
+
+                // 🔹 Filter berdasarkan range tanggal
+                $.fn.dataTable.ext.search.push(function(settings, data) {
+                    const min = parseInputDate($('#minDate').val());
+                    const max = parseInputDate($('#maxDate').val());
+                    const dateText = stripTags(data[dateColIndex]);
+                    const date = parseCellDate(dateText);
+                    if (!date) return true;
+                    if (min && date < min) return false;
+                    if (max && date > max) return false;
+                    return true;
+                });
+
+                // 🔹 Inisialisasi DataTable
                 let table = $('#bookingTable').DataTable({
                     dom: 'Bfrtip',
                     buttons: [{
                             extend: 'excel',
                             text: '<i class="bx bx-file me-1"></i> Excel',
-                            className: 'btn btn-sm btn-success'
+                            className: 'btn btn-sm btn-success',
+                            exportOptions: {
+                                modifier: {
+                                    search: 'applied'
+                                }
+                            }
                         },
                         {
                             extend: 'pdf',
                             text: '<i class="bx bx-file me-1"></i> PDF',
-                            className: 'btn btn-sm btn-danger'
+                            className: 'btn btn-sm btn-danger',
+                            exportOptions: {
+                                modifier: {
+                                    search: 'applied'
+                                }
+                            }
                         },
                         {
                             extend: 'print',
                             text: '<i class="bx bx-printer me-1"></i> Print',
-                            className: 'btn btn-sm btn-secondary'
+                            className: 'btn btn-sm btn-secondary',
+                            exportOptions: {
+                                modifier: {
+                                    search: 'applied'
+                                }
+                            }
                         },
                         {
                             extend: 'colvis',
@@ -337,15 +410,46 @@
                     order: [
                         [0, 'asc']
                     ],
-                    pageLength: 10,
-                    lengthMenu: [
-                        [10, 25, 50, -1],
-                        [10, 25, 50, "Semua"]
-                    ],
+
+                    // 🔹 Hitung total subtotal
+                    footerCallback: function(row, data, start, end, display) {
+                        let api = this.api();
+
+                        // Kolom Subtotal = index ke-4 (bukan 5)
+                        let total = api
+                            .column(4, {
+                                search: 'applied'
+                            })
+                            .data()
+                            .reduce((sum, val) => {
+                                // Bersihkan HTML
+                                let text = $('<div>').html(val).text().trim();
+
+                                // Ambil angka dari teks (contoh: "Rp 25.000" → "25000")
+                                let cleaned = text.replace(/[^\d]/g, '');
+                                let num = cleaned ? parseFloat(cleaned) : 0;
+
+                                return sum + num;
+                            }, 0);
+
+                        // Format angka menjadi Rp dengan pemisah ribuan
+                        let formatted = new Intl.NumberFormat('id-ID').format(total);
+                        $(api.column(4).footer()).html('Rp ' + formatted);
+                    },
+
+                    initComplete: function() {
+                        $("#bookingTable_filter").appendTo("#tableSearchContainer");
+                        $("#bookingTable_filter label").addClass("mb-0");
+                    }
                 });
 
-                // Pindahkan tombol ke dalam div di card-header
+                // 🔹 Tempatkan tombol export di kanan atas
                 table.buttons().container().appendTo('#exportButtons');
+
+                // 🔹 Jalankan filter saat tanggal berubah
+                $('#minDate, #maxDate').on('change', function() {
+                    table.draw();
+                });
             });
         </script>
 

@@ -192,6 +192,11 @@
                                     <div class="text-truncate" data-i18n="Analytics">Stok Barang</div>
                                 </a>
                             </li>
+                            <li class="menu-item @yield('labaActive')">
+                                <a href="/admin/laba" class="menu-link">
+                                    <div class="text-truncate" data-i18n="Analytics">Laba</div>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </ul>

@@ -16,6 +16,9 @@ use App\Http\Controllers\BarangMasukController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\HutangController;
+use App\Http\Controllers\LabaController;
+use App\Http\Controllers\DetailLabaTiketController;
+use App\Http\Controllers\DetailLabaCafeController;
 
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -134,6 +137,15 @@ Route::middleware(['auth'])->group(function () {
 
         Route::patch('admin/hutang/{hutang}/lunas', [HutangController::class, 'lunas'])
             ->name('hutang.lunas');
+
+        Route::get('admin/laba', [LabaController::class, 'index'])->name('laba.index');
+
+        Route::get('admin/laba/tiket/{tanggal}', [DetailLabaTiketController::class, 'index'])
+            ->name('laba.detail.tiket');
+
+        Route::get('admin/laba/cafe/{tanggal}', [DetailLabaCafeController::class, 'index'])
+            ->name('laba.detail.cafe');
+
 
 
     });
