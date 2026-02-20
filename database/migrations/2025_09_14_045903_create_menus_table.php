@@ -12,7 +12,7 @@ return new class extends Migration {
             // optional: relasi ke stok_barang jika ingin mengaitkan
             $table->foreignId('stok_barang_id')->nullable()->constrained('stok_barang')->nullOnDelete();
             $table->string('gambar')->nullable();
-            $table->decimal('harga_jual', 12, 2)->default(0);
+            $table->integer('harga_jual');
             $table->timestamps();
         });
     }

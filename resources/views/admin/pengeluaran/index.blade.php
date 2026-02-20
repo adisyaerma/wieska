@@ -9,12 +9,20 @@
             <div class="card-header d-flex justify-content-between align-items-center py-5">
                 <h5 class="mb-0 fs-4">Pengeluaran</h5>
 
-                <!-- Kanan: export dan tambah -->
-                <div class="d-flex align-items-center gap-2">
-                    <!-- Tempat tombol export DataTables -->
+                <div class="d-flex align-items-center gap-3">
+                    <!-- date range -->
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="date" id="tanggal_awal" class="form-control form-control-sm"
+                            value="{{ date('d-m-Y') }}">
+
+                        <span>s/d</span>
+
+                        <input type="date" id="tanggal_akhir" class="form-control form-control-sm"
+                            value="{{ date('d-m-Y') }}">
+                    </div>
+
                     <div id="exportButtons"></div>
 
-                    <!-- Button trigger modal -->
                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
                         data-bs-target="#tambahPengeluaran">
                         Tambah
@@ -27,7 +35,10 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Pengeluaran</th>
+                            <th>Tanggal</th>
+                            <th>Jenis Pengeluaran</th>
+                            <th>Tujuan Pengeluaran</th>
+                            <th>Jumlah Nominal</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -35,7 +46,19 @@
                         @foreach ($data as $i => $item)
                             <tr>
                                 <td><span>{{ $i + 1 }}</span></td>
-                                <td>{{ $item->id }}</td>
+                                <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
+                                <td>{{ $item->jenis_pengeluaran }}</td>
+                                <td>
+                                    {{ $item->tujuan_pengeluaran }}
+                                    @if ($item->jenis_pengeluaran == 'Gaji')
+                                        - {{ $item->nama ?? '-' }}
+                                    @elseif ($item->jenis_pengeluaran == 'Bayar Hutang')
+                                        - {{ $item->name ?? '-' }}
+                                    @else
+
+                                    @endif
+                                </td>
+                                <td>Rp{{ number_format($item->nominal_pengeluaran, 0, ',', '.') }}</td>
                                 <td>
                                     <div class="dropdown">
                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -43,9 +66,19 @@
                                             <i class="icon-base bx bx-dots-vertical-rounded"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <button type="button" class="dropdown-item" href="javascript:void(0);"
-                                                data-bs-toggle="modal" data-bs-target="#editPengeluaran{{ $item->id }}"><i
-                                                    class="icon-base bx bx-edit-alt me-1"></i>
+                                            <button type="button" class="dropdown-item" href="javascript:void(0);" onclick='openEditModal({
+                                                id: "{{ $item->id }}",
+                                                tanggal: "{{ $item->tanggal }}",
+                                                jenis_pengeluaran: "{{ $item->jenis_pengeluaran }}",
+                                                refrensi_id: "{{ $item->refrensi_id }}",
+                                                tujuan_pengeluaran: "{{ $item->tujuan_pengeluaran }}",
+                                                nominal_pengeluaran: "{{ $item->nominal_pengeluaran }}",
+                                                gaji_pokok: "{{ $item->gaji_pokok }}",
+                                                potongan: "{{ $item->potongan }}",
+                                                bonus: "{{ $item->bonus }}",
+                                                status: "{{ $item->status }}"
+                                              })'>
+                                                <i class="icon-base bx bx-edit-alt me-1"></i>
                                                 Edit</button>
                                             <form action="{{ route('pengeluaran.destroy', $item->id) }}" method="POST"
                                                 class="form-hapus">
@@ -59,7 +92,6 @@
                                     </div>
                                 </td>
                             </tr>
-                            @include('admin.pengeluaran.modal.edit')
                         @endforeach
                     </tbody>
                 </table>
@@ -67,33 +99,38 @@
         </div>
     </div>
 
+    @include('admin.pengeluaran.modal.edit')
     @include('admin.pengeluaran.modal.tambah')
 
     @push('scripts')
-        <style>
-            /* Biar search box lebih rapi */
-            div.dataTables_filter {
-                padding: 0.75rem 1rem;
-            }
-
-            /* Biar tulisan "Showing x to y" lebih rapi */
-            div.dataTables_info {
-                padding: 0.75rem 1rem;
-            }
-
-            /* Biar pagination (Previous/Next) ada spasi */
-            div.dataTables_paginate {
-                padding: 0.75rem 1rem;
-            }
-
-            /* Biar dropdown "Show entries" juga ada padding */
-            div.dataTables_length {
-                padding: 0.75rem 1rem;
-            }
-        </style>
-
         <script>
+            $.fn.dataTable.ext.search.push(function (settings, data) {
+                let min = $('#tanggal_awal').val();
+                let max = $('#tanggal_akhir').val();
+                let tanggal = data[1]; // kolom Tanggal (index ke-1)
+
+                if (!min && !max) return true;
+
+                let date = new Date(tanggal);
+                let minDate = min ? new Date(min) : null;
+                let maxDate = max ? new Date(max) : null;
+
+                if (
+                    (!minDate || date >= minDate) &&
+                    (!maxDate || date <= maxDate)
+                ) {
+                    return true;
+                }
+                return false;
+            });
+
             $(document).ready(function () {
+
+                // 🔒 Pastikan tidak double init
+                if ($.fn.DataTable.isDataTable('#pengeluaranTable')) {
+                    $('#pengeluaranTable').DataTable().destroy();
+                }
+
                 let table = $('#pengeluaranTable').DataTable({
                     dom: 'Bfrtip',
                     buttons: [
@@ -123,10 +160,38 @@
                     lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
                 });
 
-                // Pindahkan tombol ke dalam div di card-header
+                // Pindahkan tombol export ke header
                 table.buttons().container().appendTo('#exportButtons');
+
+                // 🔥 LIVE date range filter (tanpa reload)
+                $('#tanggal_awal, #tanggal_akhir').on('change', function () {
+                    table.draw();
+                });
+
             });
         </script>
+        <style>
+            /* Biar search box lebih rapi */
+            div.dataTables_filter {
+                padding: 0.75rem 1rem;
+            }
+
+            /* Biar tulisan "Showing x to y" lebih rapi */
+            div.dataTables_info {
+                padding: 0.75rem 1rem;
+            }
+
+            /* Biar pagination (Previous/Next) ada spasi */
+            div.dataTables_paginate {
+                padding: 0.75rem 1rem;
+            }
+
+            /* Biar dropdown "Show entries" juga ada padding */
+            div.dataTables_length {
+                padding: 0.75rem 1rem;
+            }
+        </style>
+
 
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -191,7 +256,7 @@
                         timer: 2000
                     });
                 @endif
-                                                });
+                                                                                                                                                                                            });
         </script>
     @endpush
 

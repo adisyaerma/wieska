@@ -8,10 +8,16 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Jenis Pengeluaran -->
+                <!-- Tanggal -->
+                <div class="mb-3">
+                    <label>Tanggal</label>
+                    <input type="datetime-local" name="tanggal" class="form-control" required>
+                </div>
+
+                <!-- Jenis -->
                 <div class="mb-3">
                     <label>Jenis Pengeluaran</label>
-                    <select name="jenis_pengeluaran" id="jenis_pengeluaran" class="form-control">
+                    <select name="jenis_pengeluaran" id="jenis_pengeluaran" class="form-control" required>
                         <option value="">-- Pilih --</option>
                         <option value="Operasional">Operasional</option>
                         <option value="Gaji">Gaji</option>
@@ -20,101 +26,128 @@
                     </select>
                 </div>
 
-                <!-- Operasional / Lainnya -->
-                <div id="form_operasional" class="d-none">
+                <!-- OPERASIONAL / LAINNYA -->
+                <div id="form-operasional" class="d-none">
                     <div class="mb-3">
                         <label>Tujuan Pengeluaran</label>
-                        <input type="text" name="tujuan_pengeluaran" class="form-control">
+                        <input type="text" name="tujuan_pengeluaran" placeholder="Masukkan Tujuan Pengeluaran" class="form-control">
                     </div>
-
                     <div class="mb-3">
                         <label>Nominal</label>
-                        <input type="number" name="nominal_pengeluaran" class="form-control">
+                        <input type="number" name="nominal_pengeluaran" placeholder="Masukkan Nominal" class="form-control">
                     </div>
                 </div>
 
-                <!-- Gaji -->
-                <div id="form_gaji" class="d-none">
+                <!-- GAJI -->
+                <div id="form-gaji" class="d-none">
                     <div class="mb-3">
                         <label>Karyawan</label>
                         <select name="refrensi_id" class="form-control">
-                            @foreach ($karyawan as $k)
+                            @foreach($karyawan as $k)
                                 <option value="{{ $k->id }}">{{ $k->nama }}</option>
                             @endforeach
                         </select>
                     </div>
 
+                    <div class="mb-3">
+                        <label>Gaji Pokok</label>
+                        <input type="number" id="gaji_pokok" name="gaji_pokok" placeholder="Masukkan Gaji Pokok" class="form-control">
+                    </div>
+
                     <div class="row">
                         <div class="col">
-                            <label>Gaji Pokok</label>
-                            <input type="number" id="gaji_pokok" name="gaji_pokok" class="form-control hitung-gaji">
+                            <div class="mb-3">
+                                <label>Potongan</label>
+                                <input type="number" id="potongan" name="potongan" placeholder="Masukkan Potongan Gaji" class="form-control">
+                            </div>
                         </div>
-                        <div class="col">
-                            <label>Potongan</label>
-                            <input type="number" id="potongan" name="potongan" class="form-control hitung-gaji">
-                        </div>
-                        <div class="col">
-                            <label>Bonus</label>
-                            <input type="number" id="bonus" name="bonus" class="form-control hitung-gaji">
-                        </div>
+                            <div class="col">
+                                <div class="mb-3">
+                                    <label>Bonus</label>
+                                    <input type="number" id="bonus" name="bonus" placeholder="Masukkan Bonus Gaji" class="form-control">
+                                </div>
+                            </div>
                     </div>
 
-                    <div class="mt-3">
+                    <div class="mb-3">
                         <label>Total Gaji</label>
-                        <input type="number" id="total_gaji" name="nominal_pengeluaran" class="form-control" readonly>
+                        <input type="number" id="total_gaji" class="form-control" placeholder="Total Gaji" readonly>
                     </div>
+
+                    <input type="hidden" name="nominal_pengeluaranGaji" id="nominal_pengeluaran">
                 </div>
 
-                <!-- Hutang -->
-                <div id="form_hutang" class="d-none">
+                <!-- HUTANG -->
+                <div id="form-hutang" class="d-none">
                     <div class="mb-3">
-                        <label>Daftar Hutang</label>
+                        <label>Bayar Hutang</label>
                         <select name="refrensi_id" class="form-control">
-                            @foreach ($hutang as $h)
-                                <option value="{{ $h->id }}">{{ $h->pihak }} - {{ number_format($h->sisa_hutang) }}</option>
+                            <option value="">-- Pilih --</option>
+                            @foreach($hutang as $h)
+                                <option value="{{ $h->id }}">
+                                    {{ $h->pihak }} - Sisa {{ $h->sisa_hutang }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="mb-3">
                         <label>Nominal Bayar</label>
-                        <input type="number" name="nominal_pengeluaran" class="form-control">
+                        <input type="number" name="nominal_pengeluaranHutang" placeholder="Masukkan Nominal Bayar Hutang" class="form-control">
                     </div>
+                </div>
+
+                <!-- Status -->
+                <div class="mb-3">
+                    <label>Status</label>
+                    <select name="status" class="form-control" required>
+                        <option value="Valid">Valid</option>
+                        <option value="Dibatalkan">Dibatalkan</option>
+                    </select>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
-                    Batal
+                    Batala
                 </button>
                 <button type="submit" class="btn btn-primary">Simpan</button>
             </div>
         </form>
     </div>
 </div>
+
 <script>
-    document.getElementById('jenis_pengeluaran').addEventListener('change', function () {
-        document.getElementById('form_operasional').classList.add('d-none');
-        document.getElementById('form_gaji').classList.add('d-none');
-        document.getElementById('form_hutang').classList.add('d-none');
+    const jenis = document.getElementById('jenis_pengeluaran');
+
+    jenis.addEventListener('change', function () {
+        document.getElementById('form-operasional').classList.add('d-none');
+        document.getElementById('form-gaji').classList.add('d-none');
+        document.getElementById('form-hutang').classList.add('d-none');
 
         if (this.value === 'Operasional' || this.value === 'Lainnya') {
-            document.getElementById('form_operasional').classList.remove('d-none');
+            document.getElementById('form-operasional').classList.remove('d-none');
         }
+
         if (this.value === 'Gaji') {
-            document.getElementById('form_gaji').classList.remove('d-none');
+            document.getElementById('form-gaji').classList.remove('d-none');
         }
+
         if (this.value === 'Hutang') {
-            document.getElementById('form_hutang').classList.remove('d-none');
+            document.getElementById('form-hutang').classList.remove('d-none');
         }
     });
 
-    document.querySelectorAll('.hitung-gaji').forEach(input => {
-        input.addEventListener('input', function () {
-            let pokok = parseInt(document.getElementById('gaji_pokok').value) || 0;
-            let potongan = parseInt(document.getElementById('potongan').value) || 0;
-            let bonus = parseInt(document.getElementById('bonus').value) || 0;
+    function hitungGaji() {
+        let pokok = parseInt(document.getElementById('gaji_pokok').value) || 0;
+        let potongan = parseInt(document.getElementById('potongan').value) || 0;
+        let bonus = parseInt(document.getElementById('bonus').value) || 0;
 
-            document.getElementById('total_gaji').value = (pokok + bonus) - potongan;
-        });
+        let total = pokok - potongan + bonus;
+        document.getElementById('total_gaji').value = total;
+        document.getElementById('nominal_pengeluaran').value = total;
+    }
+
+    ['gaji_pokok', 'potongan', 'bonus'].forEach(id => {
+        document.getElementById(id).addEventListener('input', hitungGaji);
     });
 </script>

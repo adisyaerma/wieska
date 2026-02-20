@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\CafeController;
 use App\Http\Controllers\BarangMasukController;
-use App\Models\Karyawan;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\PengeluaranController;
 
@@ -101,14 +101,33 @@ Route::middleware(['auth'])->group(function () {
         Route::put('admin/riwayat_tiket_detail/{id}', [TiketController::class, 'updateDetail'])->name('riwayat_tiket_detail.update');
         Route::put('admin/tiket-detail/{id}', [TiketController::class, 'updateDetail'])->name('tiketdetail.update');
 
-        //pengeluaran 
         Route::get('admin/pengeluaran', [PengeluaranController::class, 'index'])->name('pengeluaran.index');
         Route::get('admin/pengeluaran/detail', [PengeluaranController::class, 'show'])->name('pengeluaran.show');
         Route::post('admin/pengeluaran/store', [PengeluaranController::class, 'store'])->name('pengeluaran.store');
-        Route::post('admin/pengeluaran/edit/{pengeluaran}', [PengeluaranController::class, 'update'])->name('pengeluaran.update');
+        Route::post('admin/pengeluaran/edit/{id}', [PengeluaranController::class, 'update'])->name('pengeluaran.update');
+        Route::get('/pengeluaran/filter-tanggal', [PengeluaranController::class, 'filterTanggal'])->name('pengeluaran.filterTanggal');
         Route::delete('admin/pengeluaran/delete/{pengeluaran}', [PengeluaranController::class, 'destroy'])->name('pengeluaran.destroy');
 
+        // ---------------- BOOKING ----------------
+        Route::get('admin/booking', [BookingController::class, 'index'])
+            ->name('booking.index');
+
+        Route::post('admin/booking', [BookingController::class, 'store'])
+            ->name('booking.store');
+
+        Route::put('admin/booking/{id}', [BookingController::class, 'update'])
+            ->name('booking.update');
+
+        Route::delete('admin/booking/{id}', [BookingController::class, 'destroy'])
+            ->name('booking.destroy');
+
+        Route::patch('admin/booking/{id}/status/{status}', [BookingController::class, 'updateStatus'])
+            ->name('booking.status');
+
+        Route::post('/admin/booking/{id}/hadir', [BookingController::class, 'hadir']);
     });
+
+
 
 
     Route::middleware('checkRole:admin,kasir')->group(function () {

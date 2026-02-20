@@ -1,0 +1,450 @@
+@extends('admin.master')
+@section('title', 'Booking')
+@section('bookingActive', 'active')
+@section('masterDataActive', 'active open')
+@section('isi')
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <!-- Basic Bootstrap Table -->
+        <div class="card mt-1">
+            <div class="card-header d-flex justify-content-between align-items-center py-5">
+                <h5 class="mb-0 fs-4">Booking</h5>
+
+                <!-- Kanan: export dan tambah -->
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Tempat tombol export DataTables -->
+                    <div id="exportButtons"></div>
+
+                    <!-- Button trigger modal -->
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#tambahBooking">
+                        Tambah
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="tambahBooking" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <form action="{{ route('booking.store') }}" method="POST" class="modal-content">
+                        @csrf
+
+                        <div class="modal-header">
+                            <h5 class="modal-title">Tambah Booking</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="row">
+
+                                {{-- Tanggal --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Tanggal Acara</label>
+                                    <input type="date" name="tanggal"
+                                         class="form-control" required>
+                                </div>
+
+                                {{-- Nama --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nama</label>
+                                    <input type="text" name="nama" class="form-control" placeholder="Nama Pemesan"
+                                        required>
+                                </div>
+
+                                {{-- Kontak --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Kontak</label>
+                                    <input type="text" name="kontak" class="form-control" placeholder="No HP / WA"
+                                        required>
+                                </div>
+
+                                {{-- Acara --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Acara</label>
+                                    <input type="text" name="acara" class="form-control" placeholder="Jenis Acara"
+                                        required>
+                                </div>
+
+                                {{-- Jumlah Orang --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Jumlah Orang</label>
+                                    <input type="number" name="jumlah_orang" class="form-control" min="1" required>
+                                </div>
+
+                                {{-- Harga (string) --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Harga</label>
+                                    <input type="text" oninput="formatHarga(this)" name="harga" class="form-control"
+                                        placeholder="Contoh: 500.000 / Negotiable" required>
+                                    <input type="hidden" name="harga" id="harga_value">
+                                </div>
+
+                                {{-- Keterangan --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Keterangan</label>
+                                    <textarea name="keterangan" class="form-control" rows="3" placeholder="Catatan tambahan (opsional)"></textarea>
+                                </div>
+
+
+                                {{-- Status --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select name="status" class="form-select">
+                                        <option value="Pending" selected>Pending</option>
+                                        <option value="Hadir">Hadir</option>
+                                        <option value="Batal">Batal</option>
+                                    </select>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+
+
+            <div class="table-responsive text-nowrap">
+                <table class="table" id="bookingTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Tanggal Booking</th>
+                            <th>Nama</th>
+                            <th>Kontak</th>
+                            <th>Acara</th>
+                            <th>Jumlah Orang</th>
+                            <th>Tanggal Acara</th>
+                            <th>Harga</th>
+                            <th>Status</th>
+                            <th>Karyawan</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="table-border-bottom-0">
+                        @foreach ($bookings as $i => $booking)
+                            <tr>
+                                <td>{{ $i + 1 }}</td>
+                                <td>{{ \Carbon\Carbon::parse($booking->created_at)->format('d-m-Y') }}</td>
+                                <td>{{ $booking->nama }}</td>
+                                <td>{{ $booking->kontak }}</td>
+                                <td>{{ $booking->acara }}</td>
+                                <td>{{ $booking->jumlah_orang }}</td>
+                                <td>{{ \Carbon\Carbon::parse($booking->tanggal)->format('d-m-Y') }}</td>
+                                <td>Rp {{ number_format($booking->harga, 0, ',', '.') }}</td>
+                                <td>
+                                    @if ($booking->status == 'Pending')
+                                        <span class="badge bg-warning mb-1 d-block">Pending</span>
+                                        <button class="btn btn-sm btn-primary btn-hadir" data-id="{{ $booking->id }}">
+                                            Konfirmasi Hadir
+                                        </button>
+                                    @elseif ($booking->status == 'Hadir')
+                                        <span class="badge bg-success">Hadir</span>
+                                    @else
+                                        <span class="badge bg-danger">{{ $booking->status }}</span>
+                                    @endif
+                                </td>
+
+                                <td>{{ $booking->karyawan->nama ?? '-' }}</td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                            data-bs-toggle="dropdown">
+                                            <i class="icon-base bx bx-dots-vertical-rounded"></i>
+                                        </button>
+
+                                        <div class="dropdown-menu">
+                                            <button type="button" class="dropdown-item" data-bs-toggle="modal"
+                                                data-bs-target="#editBooking{{ $booking->id }}">
+                                                <i class="icon-base bx bx-edit-alt me-1"></i> Edit
+                                            </button>
+
+                                            <form action="{{ route('booking.destroy', $booking->id) }}" method="POST"
+                                                class="form-hapus">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="icon-base bx bx-trash me-1"></i> Hapus
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+        <!-- Modal -->
+        @foreach ($bookings as $booking)
+            <div class="modal fade" id="editBooking{{ $booking->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <form action="{{ route('booking.update', $booking->id) }}" method="POST" class="modal-content">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Booking</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="row">
+
+                                {{-- Tanggal --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Tanggal Acara</label>
+                                    <input type="date" name="tanggal" class="form-control"
+                                        value="{{ \Carbon\Carbon::parse($booking->tanggal)->format('Y-m-d') }}" required>
+                                </div>
+
+                                {{-- Nama --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nama</label>
+                                    <input type="text" name="nama" class="form-control"
+                                        value="{{ $booking->nama }}" required>
+                                </div>
+
+                                {{-- Kontak --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Kontak</label>
+                                    <input type="text" name="kontak" class="form-control"
+                                        value="{{ $booking->kontak }}" required>
+                                </div>
+
+                                {{-- Acara --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Acara</label>
+                                    <input type="text" name="acara" class="form-control"
+                                        value="{{ $booking->acara }}" required>
+                                </div>
+
+                                {{-- Jumlah Orang --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Jumlah Orang</label>
+                                    <input type="number" name="jumlah_orang" class="form-control"
+                                        value="{{ $booking->jumlah_orang }}" required>
+                                </div>
+
+                                {{-- Harga --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Harga</label>
+                                    <input type="text" oninput="formatHarga(this, '_{{ $booking->id }}')" name="harga" class="form-control"
+                                        value="Rp {{ number_format($booking->harga, 0, ',', '.') }}" required>
+                                    <input type="hidden" name="harga" id="harga_value_{{ $booking->id }}">
+                                </div>
+
+                                {{-- Keterangan (Full Width) --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Keterangan</label>
+                                    <textarea name="keterangan" class="form-control" rows="3">{{ $booking->keterangan }}</textarea>
+                                </div>
+
+                                {{-- Status --}}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select name="status" class="form-select" required>
+                                        <option value="Pending" {{ $booking->status == 'Pending' ? 'selected' : '' }}>
+                                            Pending</option>
+                                        <option value="Hadir" {{ $booking->status == 'Hadir' ? 'selected' : '' }}>Hadir
+                                        </option>
+                                        <option value="Batal" {{ $booking->status == 'Batal' ? 'selected' : '' }}>Batal
+                                        </option>
+                                    </select>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+
+        <!--/ Basic Bootstrap Table -->
+    </div>
+
+    @push('scripts')
+        <style>
+            /* Biar search box lebih rapi */
+            div.dataTables_filter {
+                padding: 0.75rem 1rem;
+            }
+
+            /* Biar tulisan "Showing x to y" lebih rapi */
+            div.dataTables_info {
+                padding: 0.75rem 1rem;
+            }
+
+            /* Biar pagination (Previous/Next) ada spasi */
+            div.dataTables_paginate {
+                padding: 0.75rem 1rem;
+            }
+
+            /* Biar dropdown "Show entries" juga ada padding */
+            div.dataTables_length {
+                padding: 0.75rem 1rem;
+            }
+        </style>
+
+        <script>
+            function formatHarga(el, suffix=''){
+                const angka = el.value.replace(/\D/g, '');
+                el.value = angka ? 'Rp ' + new Intl.NumberFormat('id-ID').format(angka):'';
+                document.getElementById('harga_value' + suffix).value = angka;
+            }
+        </script>
+
+        <script>
+            $(document).ready(function() {
+                let table = $('#bookingTable').DataTable({
+                    dom: 'Bfrtip',
+                    buttons: [{
+                            extend: 'excel',
+                            text: '<i class="bx bx-file me-1"></i> Excel',
+                            className: 'btn btn-sm btn-success'
+                        },
+                        {
+                            extend: 'pdf',
+                            text: '<i class="bx bx-file me-1"></i> PDF',
+                            className: 'btn btn-sm btn-danger'
+                        },
+                        {
+                            extend: 'print',
+                            text: '<i class="bx bx-printer me-1"></i> Print',
+                            className: 'btn btn-sm btn-secondary'
+                        },
+                        {
+                            extend: 'colvis',
+                            text: '<i class="bx bx-show me-1"></i> Kolom',
+                            className: 'btn btn-sm btn-info'
+                        }
+                    ],
+                    order: [
+                        [0, 'asc']
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, -1],
+                        [10, 25, 50, "Semua"]
+                    ],
+                });
+
+                // Pindahkan tombol ke dalam div di card-header
+                table.buttons().container().appendTo('#exportButtons');
+            });
+        </script>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('✅ Script SweetAlert aktif (pakai class .form-hapus)');
+
+                const forms = document.querySelectorAll('.form-hapus');
+                console.log('Jumlah form hapus ditemukan:', forms.length);
+
+                forms.forEach(form => {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        console.log('Form hapus diklik!');
+
+                        Swal.fire({
+                            title: 'Yakin hapus data ini?',
+                            text: 'Data yang dihapus tidak bisa dikembalikan!',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Ya, hapus!',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
+                    });
+                });
+
+                // ✅ Notifikasi tambah berhasil
+                @if (session('success'))
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: '{{ session('success') }}',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                @endif
+
+                // ✅ Notifikasi tambah berhasil
+                @if (session('updated'))
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: '{{ session('updated') }}',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                @endif
+
+                // ✅ Notifikasi hapus berhasil
+                @if (session('deleted'))
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Dihapus!',
+                        text: '{{ session('deleted') }}',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                @endif
+            });
+        </script>
+
+        <script>
+            document.querySelectorAll('.btn-hadir').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+
+                    Swal.fire({
+                        title: 'Konfirmasi Kehadiran',
+                        text: 'Apakah pelanggan benar-benar hadir?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Hadir',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch(`{{ url('admin/booking') }}/${id}/hadir`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Content-Type': 'application/json'
+                                    }
+                                })
+                                .then(res => res.json())
+                                .then(() => {
+                                    Swal.fire('Berhasil', 'Status diubah menjadi Hadir', 'success')
+                                        .then(() => location.reload());
+                                });
+                        }
+                    });
+                });
+            });
+        </script>
+    @endpush
+
+@endsection
