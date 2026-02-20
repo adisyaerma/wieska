@@ -15,6 +15,7 @@ use App\Http\Controllers\CafeController;
 use App\Http\Controllers\BarangMasukController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\HutangController;
 
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -117,6 +118,23 @@ Route::middleware(['auth'])->group(function () {
             ->name('booking.status');
 
         Route::post('/admin/booking/{id}/hadir', [BookingController::class, 'hadir']);
+
+                // ---------------- HUTANG ----------------
+        Route::get('admin/hutang', [HutangController::class, 'index'])
+            ->name('hutang.index');
+
+        Route::post('admin/hutang', [HutangController::class, 'store'])
+            ->name('hutang.store');
+
+        Route::put('admin/hutang/{hutang}', [HutangController::class, 'update'])
+            ->name('hutang.update');
+
+        Route::delete('admin/hutang/{hutang}', [HutangController::class, 'destroy'])
+            ->name('hutang.destroy');
+
+        Route::patch('admin/hutang/{hutang}/lunas', [HutangController::class, 'lunas'])
+            ->name('hutang.lunas');
+
 
     });
 

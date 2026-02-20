@@ -1,13 +1,13 @@
 @extends('admin.master')
-@section('title', 'Booking')
-@section('bookingActive', 'active')
+@section('title', 'Hutang')
+@section('hutangActive', 'active')
 @section('transaksiActive', 'active open')
 @section('isi')
     <div class="container-xxl flex-grow-1 container-p-y">
         <!-- Basic Bootstrap Table -->
         <div class="card mt-1">
             <div class="card-header d-flex justify-content-between align-items-center py-5">
-                <h5 class="mb-0 fs-4">Booking</h5>
+                <h5 class="mb-0 fs-4">Hutang</h5>
 
                 <!-- Kanan: export dan tambah -->
                 <div class="d-flex align-items-center gap-2">
@@ -15,21 +15,19 @@
                     <div id="exportButtons"></div>
 
                     <!-- Button trigger modal -->
-                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
-                        data-bs-target="#tambahBooking">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tambahHutang">
                         Tambah
                     </button>
                 </div>
             </div>
-
-            <!-- Modal -->
-            <div class="modal fade" id="tambahBooking" tabindex="-1" aria-hidden="true">
+            <!-- Modal Tambah Hutang -->
+            <div class="modal fade" id="tambahHutang" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
-                    <form action="{{ route('booking.store') }}" method="POST" class="modal-content">
+                    <form action="{{ route('hutang.store') }}" method="POST" class="modal-content">
                         @csrf
 
                         <div class="modal-header">
-                            <h5 class="modal-title">Tambah Booking</h5>
+                            <h5 class="modal-title">Tambah Hutang</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
 
@@ -38,60 +36,35 @@
 
                                 {{-- Tanggal --}}
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Tanggal Acara</label>
-                                    <input type="date" name="tanggal" class="form-control" required>
+                                    <label class="form-label">Tanggal</label>
+                                    <input type="date" value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                        name="tanggal" class="form-control" required>
                                 </div>
 
-                                {{-- Nama --}}
+                                {{-- Pihak --}}
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Nama</label>
-                                    <input type="text" name="nama" class="form-control" placeholder="Nama Pemesan"
-                                        required>
+                                    <label class="form-label">Pihak</label>
+                                    <input type="text" name="pihak" class="form-control" required>
                                 </div>
 
-                                {{-- Kontak --}}
+                                {{-- Total Hutang --}}
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Kontak</label>
-                                    <input type="text" name="kontak" class="form-control" placeholder="No HP / WA"
-                                        required>
+                                    <label class="form-label">Total Hutang</label>
+                                    <input type="text" oninput="formatRupiah(this)" name="total_hutang"
+                                        class="form-control" required>
+                                    <input type="hidden" name="total_hutang" id="harga_value">
                                 </div>
 
-                                {{-- Acara --}}
+                                {{-- Jatuh Tempo --}}
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Acara</label>
-                                    <input type="text" name="acara" class="form-control" placeholder="Jenis Acara"
-                                        required>
-                                </div>
-
-                                {{-- Jumlah Orang --}}
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Jumlah Orang</label>
-                                    <input type="number" name="jumlah_orang" class="form-control" min="1" required>
-                                </div>
-
-                                {{-- Harga (string) --}}
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Harga</label>
-                                    <input type="text" oninput="formatHarga(this)" name="harga" class="form-control"
-                                        placeholder="Contoh: 500.000 / Negotiable" required>
-                                    <input type="hidden" name="harga" id="harga_value">
+                                    <label class="form-label">Jatuh Tempo</label>
+                                    <input type="date" name="jatuh_tempo" class="form-control" required>
                                 </div>
 
                                 {{-- Keterangan --}}
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-12 mb-3">
                                     <label class="form-label">Keterangan</label>
-                                    <textarea name="keterangan" class="form-control" rows="3" placeholder="Catatan tambahan (opsional)"></textarea>
-                                </div>
-
-
-                                {{-- Status --}}
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Status</label>
-                                    <select name="status" class="form-select">
-                                        <option value="Pending" selected>Pending</option>
-                                        <option value="Hadir">Hadir</option>
-                                        <option value="Batal">Batal</option>
-                                    </select>
+                                    <textarea name="keterangan" class="form-control" rows="3"></textarea>
                                 </div>
 
                             </div>
@@ -106,51 +79,46 @@
                 </div>
             </div>
 
-
-
             <div class="table-responsive text-nowrap">
-                <table class="table" id="bookingTable">
+                <table class="table" id="hutangTable">
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Tanggal Booking</th>
-                            <th>Nama</th>
-                            <th>Kontak</th>
-                            <th>Acara</th>
-                            <th>Jumlah Orang</th>
-                            <th>Tanggal Acara</th>
-                            <th>Harga</th>
+                            <th>Tanggal</th>
+                            <th>Pihak</th>
+                            <th>Keterangan</th>
+                            <th>Total Hutang</th>
+                            <th>Jatuh Tempo</th>
+                            <th>Tanggal Bayar</th>
                             <th>Status</th>
-                            <th>Karyawan</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
 
                     <tbody class="table-border-bottom-0">
-                        @foreach ($bookings as $i => $booking)
+                        @foreach ($hutangs as $i => $hutang)
                             <tr>
                                 <td>{{ $i + 1 }}</td>
-                                <td>{{ \Carbon\Carbon::parse($booking->created_at)->format('d-m-Y') }}</td>
-                                <td>{{ $booking->nama }}</td>
-                                <td>{{ $booking->kontak }}</td>
-                                <td>{{ $booking->acara }}</td>
-                                <td>{{ $booking->jumlah_orang }}</td>
-                                <td>{{ \Carbon\Carbon::parse($booking->tanggal)->format('d-m-Y') }}</td>
-                                <td>Rp {{ number_format($booking->harga, 0, ',', '.') }}</td>
+                                <td>{{ $hutang->tanggal->format('d-m-Y') }}</td>
+                                <td>{{ $hutang->pihak }}</td>
+                                <td>{{ $hutang->keterangan ?? '-' }}</td>
+                                <td>Rp {{ number_format($hutang->total_hutang, 0, ',', '.') }}</td>
+                                <td>{{ $hutang->jatuh_tempo->format('d-m-Y') }}</td>
+                                <td>{{ $hutang->tanggal_bayar ? $hutang->tanggal_bayar->format('d-m-Y') : '-' }}</td>
                                 <td>
-                                    @if ($booking->status == 'Pending')
-                                        <span class="badge bg-warning mb-1 d-block">Pending</span>
-                                        <button class="btn btn-sm btn-primary btn-hadir" data-id="{{ $booking->id }}">
-                                            Konfirmasi Hadir
+                                    @if ($hutang->status == 'Belum Lunas')
+                                        <span class="badge bg-warning mb-1 d-block">Belum Lunas</span>
+                                        <button class="btn btn-sm btn-success"
+                                            onclick="konfirmasiLunas({{ $hutang->id }})">
+                                            Konfirmasi Lunas
                                         </button>
-                                    @elseif ($booking->status == 'Hadir')
-                                        <span class="badge bg-success">Hadir</span>
+                                    @elseif ($hutang->status == 'Lunas')
+                                        <span class="badge bg-success">Lunas</span>
                                     @else
-                                        <span class="badge bg-danger">{{ $booking->status }}</span>
+                                        <span class="badge bg-danger">Jatuh Tempo</span>
                                     @endif
                                 </td>
 
-                                <td>{{ $booking->karyawan->nama ?? '-' }}</td>
                                 <td>
                                     <div class="dropdown">
                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -160,11 +128,11 @@
 
                                         <div class="dropdown-menu">
                                             <button type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                data-bs-target="#editBooking{{ $booking->id }}">
+                                                data-bs-target="#editHutang{{ $hutang->id }}">
                                                 <i class="icon-base bx bx-edit-alt me-1"></i> Edit
                                             </button>
 
-                                            <form action="{{ route('booking.destroy', $booking->id) }}" method="POST"
+                                            <form action="{{ route('hutang.destroy', $hutang->id) }}" method="POST"
                                                 class="form-hapus">
                                                 @csrf
                                                 @method('DELETE')
@@ -180,19 +148,19 @@
                     </tbody>
                 </table>
 
+
             </div>
         </div>
 
-        <!-- Modal -->
-        @foreach ($bookings as $booking)
-            <div class="modal fade" id="editBooking{{ $booking->id }}" tabindex="-1" aria-hidden="true">
+        @foreach ($hutangs as $hutang)
+            <div class="modal fade" id="editHutang{{ $hutang->id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
-                    <form action="{{ route('booking.update', $booking->id) }}" method="POST" class="modal-content">
+                    <form action="{{ route('hutang.update', $hutang->id) }}" method="POST" class="modal-content">
                         @csrf
                         @method('PUT')
 
                         <div class="modal-header">
-                            <h5 class="modal-title">Edit Booking</h5>
+                            <h5 class="modal-title">Edit Hutang</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
 
@@ -201,67 +169,60 @@
 
                                 {{-- Tanggal --}}
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Tanggal Acara</label>
-                                    <input type="date" name="tanggal" value="{{ \Carbon\Carbon::parse($booking->tanggal)->format('Y-m-d') }}"
+                                    <label class="form-label">Tanggal</label>
+                                    <input type="date" name="tanggal" value="{{ $hutang->tanggal->format('Y-m-d') }}"
                                         class="form-control" required>
                                 </div>
 
-                                {{-- Nama --}}
+                                {{-- Pihak --}}
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Nama</label>
-                                    <input type="text" name="nama" class="form-control"
-                                        value="{{ $booking->nama }}" required>
+                                    <label class="form-label">Pihak</label>
+                                    <input type="text" name="pihak" value="{{ $hutang->pihak }}"
+                                        class="form-control" required>
                                 </div>
 
-                                {{-- Kontak --}}
+                                {{-- Total Hutang --}}
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Kontak</label>
-                                    <input type="text" name="kontak" class="form-control"
-                                        value="{{ $booking->kontak }}" required>
+                                    <label class="form-label">Total Hutang</label>
+                                    <input type="text" oninput="formatRupiah(this, '_{{ $hutang->id }}')"
+                                        name="total_hutang" class="form-control"
+                                        value="Rp {{ number_format($hutang->total_hutang, 0, ',', '.') }}" required>
+                                    <input type="hidden" name="total_hutang" value="{{ $hutang->total_hutang }}"
+                                        id="harga_value_{{ $hutang->id }}">
                                 </div>
 
-                                {{-- Acara --}}
+                                {{-- Jatuh Tempo --}}
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Acara</label>
-                                    <input type="text" name="acara" class="form-control"
-                                        value="{{ $booking->acara }}" required>
+                                    <label class="form-label">Jatuh Tempo</label>
+                                    <input type="date" name="jatuh_tempo"
+                                        value="{{ $hutang->jatuh_tempo->format('Y-m-d') }}" class="form-control"
+                                        required>
                                 </div>
 
-                                {{-- Jumlah Orang --}}
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Jumlah Orang</label>
-                                    <input type="number" name="jumlah_orang" class="form-control"
-                                        value="{{ $booking->jumlah_orang }}" required>
-                                </div>
-
-                                {{-- Harga --}}
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Harga</label>
-                                    <input type="text" oninput="formatHarga(this, '{{ $booking->id }}')"
-                                        name="harga" class="form-control"
-                                        value="Rp {{ number_format($booking->harga, 0, ',', '.') }}" required>
-                                    <input type="hidden" name="harga" value="{{ $booking->harga }}" id="harga_value_{{ $booking->id }}">
-
-                                </div>
-
-                                {{-- Keterangan (Full Width) --}}
+                                {{-- Keterangan --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Keterangan</label>
-                                    <textarea name="keterangan" class="form-control" rows="3">{{ $booking->keterangan }}</textarea>
+                                    <textarea name="keterangan" class="form-control" rows="3">{{ $hutang->keterangan }}</textarea>
                                 </div>
 
-                                {{-- Status --}}
+                                {{-- Status (readonly visual) --}}
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Status</label>
                                     <select name="status" class="form-select" required>
-                                        <option value="Pending" {{ $booking->status == 'Pending' ? 'selected' : '' }}>
-                                            Pending</option>
-                                        <option value="Hadir" {{ $booking->status == 'Hadir' ? 'selected' : '' }}>Hadir
+                                        <option value="Belum Lunas"
+                                            {{ $hutang->status == 'Belum Lunas' ? 'selected' : '' }}>
+                                            Belum Lunas
                                         </option>
-                                        <option value="Batal" {{ $booking->status == 'Batal' ? 'selected' : '' }}>Batal
+                                        <option value="Lunas" {{ $hutang->status == 'Lunas' ? 'selected' : '' }}>
+                                            Lunas
+                                        </option>
+                                        <option value="Jatuh Tempo"
+                                            {{ $hutang->status == 'Jatuh Tempo' ? 'selected' : '' }}>
+                                            Jatuh Tempo
                                         </option>
                                     </select>
                                 </div>
+
 
                             </div>
                         </div>
@@ -270,10 +231,12 @@
                             <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Batal</button>
                             <button type="submit" class="btn btn-primary">Update</button>
                         </div>
+
                     </form>
                 </div>
             </div>
         @endforeach
+
 
         <!--/ Basic Bootstrap Table -->
     </div>
@@ -311,7 +274,7 @@
 
         <script>
             $(document).ready(function() {
-                let table = $('#bookingTable').DataTable({
+                let table = $('#hutangTable').DataTable({
                     dom: 'Bfrtip',
                     buttons: [{
                             extend: 'excel',
@@ -374,7 +337,7 @@
                             cancelButtonText: 'Batal'
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                form.submit();
+                                e.target.submit();
                             }
                         });
                     });
@@ -416,35 +379,29 @@
         </script>
 
         <script>
-            document.querySelectorAll('.btn-hadir').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-
-                    Swal.fire({
-                        title: 'Konfirmasi Kehadiran',
-                        text: 'Apakah pelanggan benar-benar hadir?',
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonText: 'Ya, Hadir',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            fetch(`{{ url('admin/booking') }}/${id}/hadir`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Content-Type': 'application/json'
-                                    }
-                                })
-                                .then(res => res.json())
-                                .then(() => {
-                                    Swal.fire('Berhasil', 'Status diubah menjadi Hadir', 'success')
-                                        .then(() => location.reload());
-                                });
-                        }
-                    });
+            function konfirmasiLunas(id) {
+                Swal.fire({
+                    title: 'Konfirmasi Pelunasan',
+                    text: 'Yakin hutang ini sudah lunas?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lunas',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/admin/hutang/${id}/lunas`, {
+                                method: 'PATCH',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                }
+                            })
+                            .then(() => {
+                                Swal.fire('Berhasil', 'Hutang ditandai lunas', 'success')
+                                    .then(() => location.reload());
+                            });
+                    }
                 });
-            });
+            }
         </script>
     @endpush
 

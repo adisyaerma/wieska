@@ -163,6 +163,11 @@
                                     <div class="text-truncate" data-i18n="Analytics">Booking</div>
                                 </a>
                             </li>
+                            <li class="menu-item @yield('hutangActive')">
+                                <a href="/admin/hutang" class="menu-link">
+                                    <div class="text-truncate" data-i18n="Analytics">Hutang</div>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="menu-item @yield('laporanActive')">
