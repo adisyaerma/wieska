@@ -1,13 +1,13 @@
 @extends('admin.master')
-@section('title', 'Laba')
-@section('labaActive', 'active')
+@section('title', 'Kas')
+@section('kasActive', 'active')
 @section('laporanActive', 'active open')
 @section('isi')
     <div class="container-xxl flex-grow-1 container-p-y">
         <!-- Basic Bootstrap Table -->
         <div class="card mt-1">
             <div class="card-header d-flex justify-content-between align-items-center py-5">
-                <h5 class="mb-0 fs-4">Laba</h5>
+                <h5 class="mb-0 fs-4">Kas</h5>
                 <div class="d-flex align-items-center gap-2">
                     <!-- Tempat tombol export DataTables -->
                     <div id="exportButtons"></div>
@@ -30,7 +30,7 @@
                     <!-- Tempat Search DataTables -->
                     <div id="tableSearchContainer"></div>
                 </div>
-                <table class="table" id="labaTable">
+                <table class="table" id="kasTable">
                     <thead>
                         <tr>
                             <th>No</th>
@@ -59,14 +59,9 @@
                                         </button>
 
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" href="">
-                                                <i class="icon-base bx bx-receipt me-1"></i>
-                                                Detail Tiket
-                                            </a>
-
-                                            <a class="dropdown-item" href="">
-                                                <i class="icon-base bx bx-coffee me-1"></i>
-                                                Detail Cafe
+                                            <a class="dropdown-item" href="{{ route('kas.detail', $kas['tanggal']) }}">
+                                                <i class="icon-base bx bx-show me-1"></i>
+                                                Detail Kas
                                             </a>
                                         </div>
                                     </div>
@@ -117,7 +112,7 @@
                 $(document).ready(function () {
                     // 🔹 Deteksi otomatis kolom tanggal
                     let dateColIndex = 1;
-                    $('#labaTable thead th').each(function (i) {
+                    $('#kasTable thead th').each(function (i) {
                         const txt = $(this).text().toLowerCase();
                         if (txt.includes('tgl') || txt.includes('tanggal')) {
                             dateColIndex = i;
@@ -158,7 +153,7 @@
                     });
 
                     // 🔹 Inisialisasi DataTable
-                    let table = $('#labaTable').DataTable({
+                    let table = $('#kasTable').DataTable({
                         dom: 'Bfrtip',
                         buttons: [{
                             extend: 'excel',
@@ -227,8 +222,8 @@
                         },
 
                         initComplete: function () {
-                            $("#labaTable_filter").appendTo("#tableSearchContainer");
-                            $("#labaTable_filter label").addClass("mb-0");
+                            $("#kasTable_filter").appendTo("#tableSearchContainer");
+                            $("#kasTable_filter label").addClass("mb-0");
                         }
                     });
 
@@ -305,7 +300,7 @@
                         timer: 2000
                     });
                 @endif
-                                            });
+                                                            });
         </script>
 
         <script>

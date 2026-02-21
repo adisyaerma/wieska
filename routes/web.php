@@ -117,6 +117,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('admin/pengeluaran/delete/{pengeluaran}', [PengeluaranController::class, 'destroy'])->name('pengeluaran.destroy');
 
         Route::get('admin/kas', [KasController::class, 'index'])->name('kas.index');
+        Route::get('/kas/detail/{tanggal}', [KasController::class, 'detail'])
+            ->name('kas.detail');
 
         // ---------------- BOOKING ----------------
         Route::get('admin/booking', [BookingController::class, 'index'])

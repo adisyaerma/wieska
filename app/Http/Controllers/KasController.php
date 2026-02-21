@@ -2,6 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
+use App\Models\Cafe;
+use App\Models\Hutang;
+use App\Models\Pengeluaran;
+use App\Models\Tiket;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -9,11 +15,6 @@ class KasController extends Controller
 {
     public function index()
     {
-        /*
-    |--------------------------------------------------------------------------
-    | KAS MASUK
-    |--------------------------------------------------------------------------
-    */
 
         // Hutang (hanya yang Lunas)
         $hutang = DB::table('hutang')
@@ -21,7 +22,7 @@ class KasController extends Controller
                 'tanggal',
                 DB::raw('SUM(total_hutang) as total')
             )
-            ->where('status', 'Lunas')
+            // ->where('status', 'Belum Lunas')
             ->groupBy('tanggal');
 
         // Tiket
@@ -64,11 +65,6 @@ class KasController extends Controller
             ->groupBy('tanggal')
             ->get();
 
-        /*
-    |--------------------------------------------------------------------------
-    | KAS KELUAR
-    |--------------------------------------------------------------------------
-    */
 
         // Pengeluaran (VALID saja)
         $pengeluaran = DB::table('pengeluarans')
@@ -126,51 +122,90 @@ class KasController extends Controller
         return view('admin.kas.index', compact('dataKas'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function detail($tanggal)
     {
-        //
-    }
+        $tanggal = Carbon::parse($tanggal)->format('Y-m-d');
+        // TIKET
+        $tiket = Tiket::with(['karyawan', 'details.jenisTiket'])
+            ->whereDate('tanggal', $tanggal)
+            ->get()
+            ->map(function ($t) {
+                return [
+                    'tanggal'     => $t->tanggal,
+                    'sumber'      => 'Tiket',
+                    'keterangan'  => $t->details->pluck('jenisTiket.jenis_tiket')->join(', '),
+                    'total'       => $t->subtotal,
+                    'petugas'     => optional($t->karyawan)->nama,
+                ];
+            });
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        // CAFE
+        $cafe = Cafe::with(['karyawan', 'details.menu.stokBarang'])
+            ->whereDate('tanggal', $tanggal)
+            ->get()
+            ->map(function ($c) {
+                return [
+                    'tanggal'     => $c->tanggal,
+                    'sumber'      => 'Cafe',
+                    'keterangan'  => $c->details->pluck('menu.stokBarang.nama_barang')->join(', '),
+                    'total'       => $c->subtotal,
+                    'petugas'     => optional($c->karyawan)->nama,
+                ];
+            });
+            // dd( $cafe);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+        // BOOKING
+        $booking = Booking::whereDate('tanggal', $tanggal)
+            ->where('status', 'Hadir')
+            ->get()
+            ->map(function ($b) {
+                return [
+                    'tanggal'     => $b->tanggal,
+                    'sumber'      => 'Booking',
+                    'keterangan'  => $b->nama,
+                    'total'       => $b->harga,
+                    'petugas'     => '-',
+                ];
+            });
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        // HUTANG DIBAYAR (MASUK)
+        $hutang = Hutang::whereDate('tanggal', $tanggal)
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+            ->get()
+            ->map(function ($h) {
+                return [
+                    'tanggal'     => $h->tanggal,
+                    'sumber'      => 'Hutang',
+                    'keterangan'  => 'Pembayaran Hutang',
+                    'total'       => $h->total_hutang,
+                    'petugas'     => '-',
+                ];
+            });
+
+        // 🔥 GABUNG SEMUA (COLLECTION)
+        $kasMasuk = collect()
+            ->merge($tiket)
+            ->merge($cafe)
+            ->merge($booking)
+            ->merge($hutang)
+            ->sortBy('tanggal')
+            ->values();
+
+        /* =======================
+     | KAS KELUAR
+     ======================= */
+
+        $kasKeluar = DB::table('pengeluarans')
+            ->whereDate('tanggal', $tanggal)
+            ->where('status', 'Valid')
+            ->get();
+
+
+        return view('admin.kas.detail', compact(
+            'tanggal',
+            'kasMasuk',
+            'kasKeluar'
+        ));
     }
 }

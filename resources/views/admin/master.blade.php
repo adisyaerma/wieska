@@ -202,6 +202,11 @@
                                     <div class="text-truncate" data-i18n="Analytics">Laba</div>
                                 </a>
                             </li>
+                            <li class="menu-item @yield('kasActive')">
+                                <a href="/admin/kas" class="menu-link">
+                                    <div class="text-truncate" data-i18n="Analytics">Kas</div>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </ul>
