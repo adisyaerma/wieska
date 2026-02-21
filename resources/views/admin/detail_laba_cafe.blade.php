@@ -7,11 +7,12 @@
         <!-- Basic Bootstrap Table -->
         <div class="card mt-1">
             <div class="card-header d-flex justify-content-between align-items-center py-5">
-                <h5 class="mb-0 fs-4">Laba Cafe</h5>
+                <h5 class="mb-0 fs-4">Laba Cafe
+                    <small>{{ \Carbon\Carbon::parse(request('tanggal'))->format('d-m-Y') }}</small></h5>
                 <div class="d-flex align-items-center gap-2">
                     <!-- Tempat tombol export DataTables -->
                     <div id="exportButtons"></div>
-
+                    <a href="/admin/laba" class="btn btn-sm btn-secondary">Kembali</a>
                 </div>
 
             </div>
