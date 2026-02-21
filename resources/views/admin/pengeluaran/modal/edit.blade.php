@@ -27,6 +27,7 @@
                         <option value="Operasional">Operasional</option>
                         <option value="Gaji">Gaji</option>
                         <option value="Hutang">Hutang</option>
+                        <option value="Kembalian">Kembalian</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
@@ -83,7 +84,10 @@
                         <label>Hutang</label>
                         <select name="refrensi_id" id="edit_hutang" class="form-control">
                             @foreach($hutang_edit as $h)
-                                <option value="{{ $h->id }}">{{ $h->pihak }} - Rp{{ number_format($h->total_hutang, 0, ',', '.') }} - Rp {{ number_format($h->sisa_hutang, 0, ',', '.') }}</option>
+                                <option value="{{ $h->id }}">{{ $h->pihak }} -
+                                    Rp{{ number_format($h->total_hutang, 0, ',', '.') }} - Rp
+                                    {{ number_format($h->sisa_hutang, 0, ',', '.') }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -91,6 +95,14 @@
                     <div class="mb-3">
                         <label>Nominal Bayar</label>
                         <input type="number" name="nominal_hutang" id="edit_nominal_hutang" class="form-control">
+                    </div>
+                </div>
+
+                <div id="edit-form-kembalian" class="d-none">
+                    <div class="mb-3">
+                        <label>Nominal Kembalian</label>
+                        <input type="number" name="nominal_kembalian" placeholder="Masukkan Nominal Kembalian"
+                            class="form-control" id="edit_nominal_kembalian" value="">
                     </div>
                 </div>
 
@@ -106,7 +118,7 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-primary">Update</button>
+                <button class="btn btn-primary">Simpan Perubahan</button>
             </div>
 
         </form>
@@ -117,49 +129,46 @@
     const editJenis = document.getElementById('edit_jenis');
 
     editJenis.addEventListener('change', function () {
-        ['operasional', 'gaji', 'hutang'].forEach(v => {
-            document.getElementById(`edit-form-${v}`).classList.add('d-none');
+
+        // reset semua form
+        ['operasional', 'gaji', 'hutang', 'kembalian'].forEach(v => {
+            const el = document.getElementById(`edit-form-${v}`);
+            if (el) el.classList.add('d-none');
         });
 
         if (this.value === 'Operasional' || this.value === 'Lainnya') {
             document.getElementById('edit-form-operasional').classList.remove('d-none');
         }
+
         if (this.value === 'Gaji') {
             document.getElementById('edit-form-gaji').classList.remove('d-none');
         }
+
         if (this.value === 'Hutang') {
             document.getElementById('edit-form-hutang').classList.remove('d-none');
         }
-    });
 
-    function hitungGajiEdit() {
-        let total =
-            (parseInt(edit_gaji_pokok.value) || 0)
-            - (parseInt(edit_potongan.value) || 0)
-            + (parseInt(edit_bonus.value) || 0);
-
-        edit_total_gaji.value = total;
-    }
-
-    ['edit_gaji_pokok', 'edit_potongan', 'edit_bonus'].forEach(id => {
-        document.getElementById(id).addEventListener('input', hitungGajiEdit);
+        if (this.value === 'Kembalian') {
+            document.getElementById('edit-form-kembalian').classList.remove('d-none');
+        }
     });
 
     function openEditModal(data) {
-        document.getElementById('formEditPengeluaran').action = `/admin/pengeluaran/edit/${data.id}`;
+        document.getElementById('formEditPengeluaran').action =
+            `/admin/pengeluaran/edit/${data.id}`;
 
         edit_id.value = data.id;
         edit_tanggal.value = data.tanggal.replace(' ', 'T');
         edit_jenis.value = data.jenis_pengeluaran;
         edit_status.value = data.status;
 
-        // Trigger form tampil
+        // trigger tampilkan form
         editJenis.dispatchEvent(new Event('change'));
 
         setTimeout(() => {
 
             if (data.jenis_pengeluaran === 'Gaji') {
-                edit_karyawan.value = String(data.refrensi_id); // ⚠️ STRING
+                edit_karyawan.value = String(data.refrensi_id);
                 edit_gaji_pokok.value = data.gaji_pokok ?? 0;
                 edit_potongan.value = data.potongan ?? 0;
                 edit_bonus.value = data.bonus ?? 0;
@@ -176,7 +185,12 @@
                 edit_nominal_operasional.value = data.nominal_pengeluaran;
             }
 
-        }, 50); // ⏱️ DOM settle
+            // ✅ KEMBALIAN
+            if (data.jenis_pengeluaran === 'Kembalian') {
+                edit_nominal_kembalian.value = data.nominal_pengeluaran;
+            }
+
+        }, 50);
 
         new bootstrap.Modal('#editPengeluaran').show();
     }

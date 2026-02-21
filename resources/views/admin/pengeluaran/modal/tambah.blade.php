@@ -22,6 +22,7 @@
                         <option value="Operasional">Operasional</option>
                         <option value="Gaji">Gaji</option>
                         <option value="Hutang">Hutang</option>
+                        <option value="Kembalian">Kembalian</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
@@ -30,11 +31,13 @@
                 <div id="form-operasional" class="d-none">
                     <div class="mb-3">
                         <label>Tujuan Pengeluaran</label>
-                        <input type="text" name="tujuan_pengeluaran" placeholder="Masukkan Tujuan Pengeluaran" class="form-control">
+                        <input type="text" name="tujuan_pengeluaran" placeholder="Masukkan Tujuan Pengeluaran"
+                            class="form-control">
                     </div>
                     <div class="mb-3">
                         <label>Nominal</label>
-                        <input type="number" name="nominal_pengeluaran" placeholder="Masukkan Nominal" class="form-control">
+                        <input type="number" name="nominal_pengeluaran" placeholder="Masukkan Nominal"
+                            class="form-control">
                     </div>
                 </div>
 
@@ -51,22 +54,25 @@
 
                     <div class="mb-3">
                         <label>Gaji Pokok</label>
-                        <input type="number" id="gaji_pokok" name="gaji_pokok" placeholder="Masukkan Gaji Pokok" class="form-control">
+                        <input type="number" id="gaji_pokok" name="gaji_pokok" placeholder="Masukkan Gaji Pokok"
+                            class="form-control">
                     </div>
 
                     <div class="row">
                         <div class="col">
                             <div class="mb-3">
                                 <label>Potongan</label>
-                                <input type="number" id="potongan" name="potongan" placeholder="Masukkan Potongan Gaji" class="form-control">
+                                <input type="number" id="potongan" name="potongan" placeholder="Masukkan Potongan Gaji"
+                                    class="form-control">
                             </div>
                         </div>
-                            <div class="col">
-                                <div class="mb-3">
-                                    <label>Bonus</label>
-                                    <input type="number" id="bonus" name="bonus" placeholder="Masukkan Bonus Gaji" class="form-control">
-                                </div>
+                        <div class="col">
+                            <div class="mb-3">
+                                <label>Bonus</label>
+                                <input type="number" id="bonus" name="bonus" placeholder="Masukkan Bonus Gaji"
+                                    class="form-control">
                             </div>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -85,7 +91,8 @@
                             <option value="">-- Pilih --</option>
                             @foreach($hutang as $h)
                                 <option value="{{ $h->id }}">
-                                    {{ $h->pihak }} - Rp{{ number_format($h->total_hutang, 0, ',', '.') }} - Rp {{ number_format($h->sisa_hutang, 0, ',', '.') }}
+                                    {{ $h->pihak }} - Rp{{ number_format($h->total_hutang, 0, ',', '.') }} - Rp
+                                    {{ number_format($h->sisa_hutang, 0, ',', '.') }}
                                 </option>
                             @endforeach
                         </select>
@@ -93,7 +100,17 @@
 
                     <div class="mb-3">
                         <label>Nominal Bayar</label>
-                        <input type="number" name="nominal_pengeluaran_hutang" placeholder="Masukkan Nominal Bayar Hutang" class="form-control">
+                        <input type="number" name="nominal_pengeluaran_hutang"
+                            placeholder="Masukkan Nominal Bayar Hutang" class="form-control">
+                    </div>
+                </div>
+
+                <!-- KEMBALIAN -->
+                <div id="form-kembalian" class="d-none">
+                    <div class="mb-3">
+                        <label>Nominal Kembalian</label>
+                        <input type="number" name="nominal_kembalian" placeholder="Masukkan Nominal Kembalian"
+                            class="form-control">
                     </div>
                 </div>
 
@@ -120,9 +137,11 @@
     const jenis = document.getElementById('jenis_pengeluaran');
 
     jenis.addEventListener('change', function () {
-        document.getElementById('form-operasional').classList.add('d-none');
-        document.getElementById('form-gaji').classList.add('d-none');
-        document.getElementById('form-hutang').classList.add('d-none');
+
+        // reset semua
+        ['operasional', 'gaji', 'hutang', 'kembalian'].forEach(v => {
+            document.getElementById(`form-${v}`)?.classList.add('d-none');
+        });
 
         if (this.value === 'Operasional' || this.value === 'Lainnya') {
             document.getElementById('form-operasional').classList.remove('d-none');
@@ -134,6 +153,10 @@
 
         if (this.value === 'Hutang') {
             document.getElementById('form-hutang').classList.remove('d-none');
+        }
+
+        if (this.value === 'Kembalian') {
+            document.getElementById('form-kembalian').classList.remove('d-none');
         }
     });
 

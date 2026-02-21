@@ -52,8 +52,8 @@ class PengeluaranController extends Controller
         switch ($request->jenis_pengeluaran) {
             case 'Gaji':
                 $nominal = ($request->gaji_pokok ?? 0)
-                        - ($request->potongan ?? 0)
-                        + ($request->bonus ?? 0);
+                    - ($request->potongan ?? 0)
+                    + ($request->bonus ?? 0);
                 $refrensi = $request->refrensi_id_gaji ?? null;
                 break;
 
@@ -66,6 +66,11 @@ class PengeluaranController extends Controller
                 $nominal = $request->nominal_pengeluaran_hutang ?? 0;
                 $nominalHutang = $nominal;
                 $refrensi = $request->refrensi_id_hutang ?? null;
+                break;
+
+            case 'Kembalian':
+                $nominal = $request->nominal_kembalian ?? 0;
+                $refrensi = 0;
                 break;
         }
 
@@ -229,6 +234,8 @@ class PengeluaranController extends Controller
             $nominalBaru = ($request->gaji_pokok ?? 0)
                 - ($request->potongan ?? 0)
                 + ($request->bonus ?? 0);
+        } elseif ($request->jenis_pengeluaran === 'Kembalian') {
+            $nominalBaru = $request->nominal_kembalian;
         } else {
             $nominalBaru = $request->nominal_operasional;
         }

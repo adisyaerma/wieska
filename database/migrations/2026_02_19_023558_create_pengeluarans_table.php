@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('pengeluarans', function (Blueprint $table) {
             $table->id();
             $table->dateTime('tanggal')->nullable();
-            $table->enum('jenis_pengeluaran', ['Operasional', 'Gaji', 'Hutang', 'Lainnya']);
+            $table->enum('jenis_pengeluaran', ['Operasional', 'Gaji', 'Hutang',  'Kembalian','Lainnya']);
             $table->integer('refrensi_id');
             $table->string('tujuan_pengeluaran');
             $table->integer('nominal_pengeluaran');
