@@ -52,13 +52,22 @@
                                     {{ $item->tujuan_pengeluaran }}
                                     @if ($item->jenis_pengeluaran == 'Gaji')
                                         - {{ $item->nama ?? '-' }}
-                                    @elseif ($item->jenis_pengeluaran == 'Bayar Hutang')
-                                        - {{ $item->name ?? '-' }}
+                                    @elseif ($item->jenis_pengeluaran == 'Hutang')
+                                        - {{ $item->pihak ?? '-' }}
                                     @else
 
                                     @endif
                                 </td>
-                                <td>Rp{{ number_format($item->nominal_pengeluaran, 0, ',', '.') }}</td>
+                                @php
+                                    $totalGaji = $item->gaji_pokok - $item->potongan + $item->bonus;
+                                @endphp
+                                <td>
+                                    @if ($item->jenis_pengeluaran == "Gaji")
+                                        Rp {{ number_format($totalGaji, 0, ',', '.') }}
+                                    @else
+                                        Rp {{ number_format($item->nominal_pengeluaran, 0, ',', '.') }}
+                                    @endif
+                                </td>
                                 <td>
                                     <div class="dropdown">
                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -67,25 +76,44 @@
                                         </button>
                                         <div class="dropdown-menu">
                                             <button type="button" class="dropdown-item" href="javascript:void(0);" onclick='openEditModal({
-                                                id: "{{ $item->id }}",
-                                                tanggal: "{{ $item->tanggal }}",
-                                                jenis_pengeluaran: "{{ $item->jenis_pengeluaran }}",
-                                                refrensi_id: "{{ $item->refrensi_id }}",
-                                                tujuan_pengeluaran: "{{ $item->tujuan_pengeluaran }}",
-                                                nominal_pengeluaran: "{{ $item->nominal_pengeluaran }}",
-                                                gaji_pokok: "{{ $item->gaji_pokok }}",
-                                                potongan: "{{ $item->potongan }}",
-                                                bonus: "{{ $item->bonus }}",
-                                                status: "{{ $item->status }}"
-                                              })'>
+                                                                                                id: "{{ $item->id }}",
+                                                                                                tanggal: "{{ $item->tanggal }}",
+                                                                                                jenis_pengeluaran: "{{ $item->jenis_pengeluaran }}",
+                                                                                                refrensi_id: "{{ $item->refrensi_id }}",
+                                                                                                tujuan_pengeluaran: "{{ $item->tujuan_pengeluaran }}",
+                                                                                                nominal_pengeluaran: "{{ $item->nominal_pengeluaran }}",
+                                                                                                gaji_pokok: "{{ $item->gaji_pokok }}",
+                                                                                                potongan: "{{ $item->potongan }}",
+                                                                                                bonus: "{{ $item->bonus }}",
+                                                                                                status: "{{ $item->status }}"
+                                                                                              })'>
                                                 <i class="icon-base bx bx-edit-alt me-1"></i>
-                                                Edit</button>
+                                                Edit
+                                            </button>
+                                            @if ($item->jenis_pengeluaran == 'Gaji')
+                                                <a href="{{ route('pengeluaran.gaji', $item->id) }}" class="dropdown-item">
+                                                    <i class="icon-base bx bx-show me-1"></i>
+                                                    Detail
+                                                </a>
+                                            @endif
+                                            @if ($item->jenis_pengeluaran == 'Hutang')
+                                                <a href="{{ route('pengeluaran.hutang', $item->id) }}" class="dropdown-item">
+                                                    <i class="icon-base bx bx-show me-1"></i>
+                                                    Detail
+                                                </a>
+                                            @endif
+                                            <a href="{{ route('pengeluaran.print', $item->id) }}" target="_blank" class="dropdown-item"
+                                                rel="noopener noreferrer">
+                                                <i class="icon-base bx bx-printer me-1"></i>
+                                                Cetak
+                                            </a>
                                             <form action="{{ route('pengeluaran.destroy', $item->id) }}" method="POST"
                                                 class="form-hapus">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="dropdown-item">
-                                                    <i class="icon-base bx bx-trash me-1"></i> Hapus
+                                                    <i class="icon-base bx bx-trash me-1"></i>
+                                                    Hapus
                                                 </button>
                                             </form>
                                         </div>
@@ -197,6 +225,31 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', () => {
+
+                // Jika ada pengeluaran baru
+                @if(session('new_pengeluaran_id'))
+                    let pengeluaranId = {{ session('new_pengeluaran_id') }};
+                    Swal.fire({
+                        title: 'Pengeluaran berhasil ditambahkan!',
+                        text: 'Apakah Anda ingin mencetak tiket?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Cetak',
+                        cancelButtonText: 'Tidak',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Redirect ke halaman cetak, misal route 'pengeluaran.print'
+                            window.location.href = '/admin/pengeluaran/print/' + pengeluaranId;
+                        }
+                        // Jika klik Tidak, tetap di halaman index
+                    });
+                @endif
+
+                        });
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
                 console.log('✅ Script SweetAlert aktif (pakai class .form-hapus)');
 
                 const forms = document.querySelectorAll('.form-hapus');
@@ -256,7 +309,7 @@
                         timer: 2000
                     });
                 @endif
-                                                                                                                                                                                            });
+                                                                                                                                                                                                                                            });
         </script>
     @endpush
 

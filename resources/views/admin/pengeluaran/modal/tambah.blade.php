@@ -4,7 +4,7 @@
         <form action="{{ route('pengeluaran.store') }}" method="POST" class="modal-content">
             @csrf
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel1">Tambah Satuan</h5>
+                <h5 class="modal-title" id="exampleModalLabel1">Tambah Pengeluaran</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -30,7 +30,7 @@
                 <div id="form-operasional" class="d-none">
                     <div class="mb-3">
                         <label>Tujuan Pengeluaran</label>
-                        <input type="text" name="tujuan_pengeluaran" placeholder="Masukkan Tujuan Pengeluaran" class="form-control">
+                        <input type="text" name="tujuan_pengeluaran" placeholder="Masukkan Tujuan Pengeluaran" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label>Nominal</label>
@@ -42,7 +42,7 @@
                 <div id="form-gaji" class="d-none">
                     <div class="mb-3">
                         <label>Karyawan</label>
-                        <select name="refrensi_id" class="form-control">
+                        <select name="refrensi_id_gaji" class="form-control" required>
                             @foreach($karyawan as $k)
                                 <option value="{{ $k->id }}">{{ $k->nama }}</option>
                             @endforeach
@@ -51,7 +51,7 @@
 
                     <div class="mb-3">
                         <label>Gaji Pokok</label>
-                        <input type="number" id="gaji_pokok" name="gaji_pokok" placeholder="Masukkan Gaji Pokok" class="form-control">
+                        <input type="number" id="gaji_pokok" name="gaji_pokok" placeholder="Masukkan Gaji Pokok" class="form-control" required>
                     </div>
 
                     <div class="row">
@@ -81,11 +81,11 @@
                 <div id="form-hutang" class="d-none">
                     <div class="mb-3">
                         <label>Bayar Hutang</label>
-                        <select name="refrensi_id" class="form-control">
+                        <select name="refrensi_id_hutang" class="form-control">
                             <option value="">-- Pilih --</option>
                             @foreach($hutang as $h)
                                 <option value="{{ $h->id }}">
-                                    {{ $h->pihak }} - Sisa {{ $h->sisa_hutang }}
+                                    {{ $h->pihak }} - Rp{{ number_format($h->total_hutang, 0, ',', '.') }}
                                 </option>
                             @endforeach
                         </select>
@@ -93,7 +93,7 @@
 
                     <div class="mb-3">
                         <label>Nominal Bayar</label>
-                        <input type="number" name="nominal_pengeluaranHutang" placeholder="Masukkan Nominal Bayar Hutang" class="form-control">
+                        <input type="number" name="nominal_pengeluaran_hutang" placeholder="Masukkan Nominal Bayar Hutang" class="form-control" required>
                     </div>
                 </div>
 

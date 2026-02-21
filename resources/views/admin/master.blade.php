@@ -168,6 +168,11 @@
                                     <div class="text-truncate" data-i18n="Analytics">Hutang</div>
                                 </a>
                             </li>
+                            <li class="menu-item @yield('pengeluaranActive')">
+                                <a href="/admin/pengeluaran" class="menu-link">
+                                    <div class="text-truncate" data-i18n="Analytics">Pengeluaran</div>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="menu-item @yield('laporanActive')">

@@ -8,6 +8,7 @@ use App\Models\Pengeluaran;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use function Laravel\Prompts\select;
 
 class PengeluaranController extends Controller
 {
@@ -20,7 +21,7 @@ class PengeluaranController extends Controller
             })
             ->leftJoin('hutang', function ($join) {
                 $join->on('pengeluarans.refrensi_id', '=', 'hutang.id')
-                    ->where('pengeluarans.jenis_pengeluaran', '=', 'Bayar Hutang');
+                    ->where('pengeluarans.jenis_pengeluaran', '=', 'Hutang');
             })
             ->select(
                 'pengeluarans.*',
@@ -30,7 +31,7 @@ class PengeluaranController extends Controller
             ->orderBy('pengeluarans.tanggal', 'desc')
             ->get();
         $karyawan = Karyawan::all();
-        $hutang = Hutang::all();
+        $hutang = Hutang::where('status', '!=', 'Lunas')->get();
         return view('admin.pengeluaran.index', compact('data', 'karyawan', 'hutang'));
     }
     public function store(Request $request)
@@ -49,44 +50,105 @@ class PengeluaranController extends Controller
                 + ($request->bonus ?? 0);
         }
 
+        if ($request->nominal_pengeluaran == 0) {
+            $nominalHutang = $request->nominal_pengeluaran_hutang ?? 0;
+        }
+
         if (in_array($request->jenis_pengeluaran, ['Operasional', 'Lainnya'])) {
             $nominal = $request->nominal_pengeluaran;
         }
-        if ($request->jenis_pengeluaran == 'Bayar Hutang') {
-            $nominal = $request->nominal_pengeluaranHutang;
+
+        if ($request->jenis_pengeluaran == 'Hutang') {
+            $nominal = $request->nominal_pengeluaran_hutang;
+        } else {
+            $nominal = $request->nominal_pengeluaran;
         }
+        if ($request->jenis_pengeluaran == 'Hutang') {
+            $refrensi = $request->refrensi_id_hutang ?? 0;
+        } else {
+            $refrensi = $request->refrensi_id_gaji ?? 0;
+        }
+
 
         $pengeluaran = Pengeluaran::create([
             'tanggal' => $request->tanggal,
             'jenis_pengeluaran' => $request->jenis_pengeluaran,
-            'refrensi_id' => $request->refrensi_id ?? 0,
+            'refrensi_id' => $refrensi ?? 0,
             'tujuan_pengeluaran' => $request->tujuan_pengeluaran ?? $request->jenis_pengeluaran,
-            'nominal_pengeluaran' => $nominal,
+            'nominal_pengeluaran' => $nominal ?? 0,
             'gaji_pokok' => $request->gaji_pokok,
             'potongan' => $request->potongan,
             'bonus' => $request->bonus,
             'status' => $request->status,
         ]);
 
-        // Update hutang jika bayar hutang
-        if ($request->jenis_pengeluaran == 'Hutang') {
+        // Update hutang jika Hutang
+        if ($request->jenis_pengeluaran === 'Hutang') {
             $hutang = Hutang::find($request->refrensi_id);
-            $hutang->sisa_hutang -= $nominal;
-
-            if ($hutang->sisa_hutang <= 0) {
-                $hutang->sisa_hutang = 0;
+            $hutang->total_hutang -= $nominalHutang;
+            if ($hutang->total_hutang <= 0) {
                 $hutang->status = 'Lunas';
             }
-
             $hutang->save();
         }
 
-        return back()->with('success', 'Pengeluaran berhasil disimpan');
+        return redirect()->route('pengeluaran.index')
+            ->with('new_pengeluaran_id', $pengeluaran->id);
     }
 
-    public function show(Pengeluaran $pengeluaran)
+    public function print($id)
     {
-        //
+        $pengeluaran = Pengeluaran::findOrFail($id); // ambil dulu data pengeluaran
+
+        $data = DB::table('pengeluarans')
+            ->leftJoin('karyawan', function ($join) use ($pengeluaran) {
+                $join->on('pengeluarans.refrensi_id', '=', 'karyawan.id')
+                    ->where('pengeluarans.jenis_pengeluaran', 'Gaji');
+            })
+            ->leftJoin('hutang', function ($join) use ($pengeluaran) {
+                $join->on('pengeluarans.refrensi_id', '=', 'hutang.id')
+                    ->where('pengeluarans.jenis_pengeluaran', 'Hutang');
+            })
+            ->select(
+                'pengeluarans.*',
+                'karyawan.nama as nama',
+                'karyawan.jabatan',
+                'hutang.pihak as pihak',
+                'hutang.total_hutang',
+                'hutang.status as status'
+            )
+            ->where('pengeluarans.id', $id)
+            ->first();
+        return view('admin.pengeluaran.print', compact('data'));
+    }
+    public function gaji($id)
+    {
+        $data = Pengeluaran::findOrFail($id);
+        $data = DB::table('pengeluarans')
+            ->leftJoin('karyawan', 'pengeluarans.refrensi_id', '=', 'karyawan.id')
+            ->where('pengeluarans.jenis_pengeluaran', 'Gaji')
+            ->select(
+                'pengeluarans.*',
+                'karyawan.nama as nama_karyawan',
+                'karyawan.jabatan'
+            )
+            ->first();
+        return view('admin.pengeluaran.detail.gaji', compact('data'));
+    }
+
+    public function hutang($id)
+    {
+        $data = DB::table('pengeluarans')
+            ->leftJoin('hutang', 'pengeluarans.refrensi_id', '=', 'hutang.id')
+            ->where('pengeluarans.id', $id)   // <- filter berdasarkan id
+            ->select(
+                'pengeluarans.*',
+                'hutang.*'
+            )
+            ->first();
+
+        return view('admin.pengeluaran.detail.hutang', compact('data'));
+        return view('admin.pengeluaran.detail.hutang', compact('data'));
     }
 
     public function filterTanggal(Request $request)
@@ -98,12 +160,12 @@ class PengeluaranController extends Controller
             })
             ->leftJoin('hutang', function ($join) {
                 $join->on('pengeluarans.refrensi_id', '=', 'hutang.id')
-                    ->where('pengeluarans.jenis_pengeluaran', 'Bayar Hutang');
+                    ->where('pengeluarans.jenis_pengeluaran', 'Hutang');
             })
             ->select(
                 'pengeluarans.*',
                 'karyawan.nama as nama',
-                'hutang.pihak as pihak'
+                'hutang.*',
             );
 
         $tanggalAwal = Carbon::createFromFormat('Y-m-', $request->tanggal_awal)
@@ -130,7 +192,7 @@ class PengeluaranController extends Controller
                     'jenis_pengeluaran' => $item->jenis_pengeluaran,
                     'tujuan' => match ($item->jenis_pengeluaran) {
                         'Gaji' => 'Gaji - ' . ($item->nama ?? '-'),
-                        'Bayar Hutang' => 'Bayar Hutang - ' . ($item->pihak ?? '-'),
+                        'Hutang' => 'Hutang - ' . ($item->pihak ?? '-'),
                         default => $item->tujuan_pengeluaran
                     },
                     'nominal' => 'Rp' . number_format($item->nominal_pengeluaran, 0, ',', '.'),
@@ -179,13 +241,10 @@ class PengeluaranController extends Controller
             'status' => $request->status,
         ]);
 
-        // UPDATE STATUS HUTANG
         if ($request->jenis_pengeluaran === 'Hutang') {
             $hutang = Hutang::find($request->refrensi_id);
-            $hutang->sisa_hutang -= $nominal;
-
-            if ($hutang->sisa_hutang <= 0) {
-                $hutang->sisa_hutang = 0;
+            $hutang->total_hutang -= $request->nominal_hutang;
+            if ($hutang->total_hutang <= 0) {
                 $hutang->status = 'Lunas';
             }
             $hutang->save();
@@ -194,8 +253,28 @@ class PengeluaranController extends Controller
         return back()->with('success', 'Pengeluaran berhasil diperbarui');
     }
 
-    public function destroy(Pengeluaran $pengeluaran)
+    public function destroy($id)
     {
-        //
+        $pengeluaran = Pengeluaran::findOrFail($id);
+
+        if ($pengeluaran->jenis_pengeluaran === 'Hutang') {
+
+            $hutang = Hutang::find($pengeluaran->refrensi_id);
+
+            if ($hutang) {
+                $hutang->total_hutang += $pengeluaran->nominal_pengeluaran;
+
+                // Ubah status menjadi Belum Lunas
+                $hutang->status = 'Belum Lunas';
+
+                $hutang->save();
+            }
+        }
+
+        // Hapus data pengeluaran
+        $pengeluaran->delete();
+
+        return redirect()->route('pengeluaran.index')
+            ->with('success', 'Pengeluaran berhasil dihapus dan hutang diperbarui.');
     }
 }

@@ -109,6 +109,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('admin/pengeluaran/detail', [PengeluaranController::class, 'show'])->name('pengeluaran.show');
         Route::post('admin/pengeluaran/store', [PengeluaranController::class, 'store'])->name('pengeluaran.store');
         Route::post('admin/pengeluaran/edit/{id}', [PengeluaranController::class, 'update'])->name('pengeluaran.update');
+        Route::get('admin/pengeluaran/hutang/{id}', [PengeluaranController::class, 'hutang'])->name('pengeluaran.hutang');
+        Route::get('admin/pengeluaran/print/{id}', [PengeluaranController::class, 'print'])->name('pengeluaran.print');
+        Route::get('admin/pengeluaran/gaji/{id}', [PengeluaranController::class, 'gaji'])->name('pengeluaran.gaji');
         Route::get('/pengeluaran/filter-tanggal', [PengeluaranController::class, 'filterTanggal'])->name('pengeluaran.filterTanggal');
         Route::delete('admin/pengeluaran/delete/{pengeluaran}', [PengeluaranController::class, 'destroy'])->name('pengeluaran.destroy');
 
