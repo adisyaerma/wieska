@@ -82,8 +82,8 @@
                     <div class="mb-3">
                         <label>Hutang</label>
                         <select name="refrensi_id" id="edit_hutang" class="form-control">
-                            @foreach($hutang as $h)
-                                <option value="{{ $h->id }}">{{ $h->pihak }} - Rp{{ number_format($h->total_hutang, 0, ',', '.') }}</option>
+                            @foreach($hutang_edit as $h)
+                                <option value="{{ $h->id }}">{{ $h->pihak }} - Rp{{ number_format($h->total_hutang, 0, ',', '.') }} - Rp {{ number_format($h->sisa_hutang, 0, ',', '.') }}</option>
                             @endforeach
                         </select>
                     </div>

@@ -10,17 +10,6 @@
                 <h5 class="mb-0 fs-4">Pengeluaran</h5>
 
                 <div class="d-flex align-items-center gap-3">
-                    <!-- date range -->
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="date" id="tanggal_awal" class="form-control form-control-sm"
-                            value="{{ date('d-m-Y') }}">
-
-                        <span>s/d</span>
-
-                        <input type="date" id="tanggal_akhir" class="form-control form-control-sm"
-                            value="{{ date('d-m-Y') }}">
-                    </div>
-
                     <div id="exportButtons"></div>
 
                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
@@ -30,7 +19,18 @@
                 </div>
             </div>
 
-            <div class="table-responsive text-nowrap">
+            <div class="table-responsive text-nowrap p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2 ms-3" id="filterContainer">
+                        <label for="minDate" class="form-label mb-0 fw-medium">Dari:</label>
+                        <input type="date" id="minDate" class="form-control form-control-sm" style="width: 160px;">
+                        <label for="maxDate" class="form-label mb-0 fw-medium">Sampai:</label>
+                        <input type="date" id="maxDate" class="form-control form-control-sm" style="width: 160px;">
+                    </div>
+
+                    <!-- Tempat Search DataTables -->
+                    <div id="tableSearchContainer"></div>
+                </div>
                 <table class="table" id="pengeluaranTable">
                     <thead>
                         <tr>
@@ -39,6 +39,7 @@
                             <th>Jenis Pengeluaran</th>
                             <th>Tujuan Pengeluaran</th>
                             <th>Jumlah Nominal</th>
+                            <th>Status</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -55,17 +56,23 @@
                                     @elseif ($item->jenis_pengeluaran == 'Hutang')
                                         - {{ $item->pihak ?? '-' }}
                                     @else
-
                                     @endif
                                 </td>
                                 @php
                                     $totalGaji = $item->gaji_pokok - $item->potongan + $item->bonus;
                                 @endphp
                                 <td>
-                                    @if ($item->jenis_pengeluaran == "Gaji")
+                                    @if ($item->jenis_pengeluaran == 'Gaji')
                                         Rp {{ number_format($totalGaji, 0, ',', '.') }}
                                     @else
                                         Rp {{ number_format($item->nominal_pengeluaran, 0, ',', '.') }}
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($item->status == 'Valid')
+                                        <span class="badge bg-success">Valid</span>
+                                    @else
+                                        <span class="badge bg-danger">Dibatalkan</span>
                                     @endif
                                 </td>
                                 <td>
@@ -75,7 +82,8 @@
                                             <i class="icon-base bx bx-dots-vertical-rounded"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <button type="button" class="dropdown-item" href="javascript:void(0);" onclick='openEditModal({
+                                            <button type="button" class="dropdown-item" href="javascript:void(0);"
+                                                onclick='openEditModal({
                                                                                                 id: "{{ $item->id }}",
                                                                                                 tanggal: "{{ $item->tanggal }}",
                                                                                                 jenis_pengeluaran: "{{ $item->jenis_pengeluaran }}",
@@ -97,13 +105,14 @@
                                                 </a>
                                             @endif
                                             @if ($item->jenis_pengeluaran == 'Hutang')
-                                                <a href="{{ route('pengeluaran.hutang', $item->id) }}" class="dropdown-item">
+                                                <a href="{{ route('pengeluaran.hutang', $item->id) }}"
+                                                    class="dropdown-item">
                                                     <i class="icon-base bx bx-show me-1"></i>
                                                     Detail
                                                 </a>
                                             @endif
-                                            <a href="{{ route('pengeluaran.print', $item->id) }}" target="_blank" class="dropdown-item"
-                                                rel="noopener noreferrer">
+                                            <a href="{{ route('pengeluaran.print', $item->id) }}" target="_blank"
+                                                class="dropdown-item" rel="noopener noreferrer">
                                                 <i class="icon-base bx bx-printer me-1"></i>
                                                 Cetak
                                             </a>
@@ -132,50 +141,81 @@
 
     @push('scripts')
         <script>
-            $.fn.dataTable.ext.search.push(function (settings, data) {
-                let min = $('#tanggal_awal').val();
-                let max = $('#tanggal_akhir').val();
-                let tanggal = data[1]; // kolom Tanggal (index ke-1)
+            $(document).ready(function() {
+                // 🔹 Deteksi otomatis kolom tanggal
+                let dateColIndex = 1;
+                $('#pengeluaranTable thead th').each(function(i) {
+                    const txt = $(this).text().toLowerCase();
+                    if (txt.includes('tgl') || txt.includes('tanggal')) {
+                        dateColIndex = i;
+                        return false;
+                    }
+                });
 
-                if (!min && !max) return true;
+                // 🔹 Fungsi bantu
+                function stripTags(html) {
+                    return $('<div/>').html(html).text().trim();
+                }
 
-                let date = new Date(tanggal);
-                let minDate = min ? new Date(min) : null;
-                let maxDate = max ? new Date(max) : null;
+                function parseCellDate(s) {
+                    if (!s) return null;
+                    s = s.trim();
+                    const match = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+                    if (match) return new Date(match[3], match[2] - 1, match[1]);
+                    const dt = new Date(s);
+                    return isNaN(dt) ? null : new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+                }
 
-                if (
-                    (!minDate || date >= minDate) &&
-                    (!maxDate || date <= maxDate)
-                ) {
+                function parseInputDate(val) {
+                    if (!val) return null;
+                    const parts = val.split('-');
+                    return new Date(parts[0], parts[1] - 1, parts[2]);
+                }
+
+                // 🔹 Filter berdasarkan range tanggal
+                $.fn.dataTable.ext.search.push(function(settings, data) {
+                    const min = parseInputDate($('#minDate').val());
+                    const max = parseInputDate($('#maxDate').val());
+                    const dateText = stripTags(data[dateColIndex]);
+                    const date = parseCellDate(dateText);
+                    if (!date) return true;
+                    if (min && date < min) return false;
+                    if (max && date > max) return false;
                     return true;
-                }
-                return false;
-            });
+                });
 
-            $(document).ready(function () {
-
-                // 🔒 Pastikan tidak double init
-                if ($.fn.DataTable.isDataTable('#pengeluaranTable')) {
-                    $('#pengeluaranTable').DataTable().destroy();
-                }
-
+                // 🔹 Inisialisasi DataTable
                 let table = $('#pengeluaranTable').DataTable({
                     dom: 'Bfrtip',
-                    buttons: [
-                        {
+                    buttons: [{
                             extend: 'excel',
                             text: '<i class="bx bx-file me-1"></i> Excel',
-                            className: 'btn btn-sm btn-success'
+                            className: 'btn btn-sm btn-success',
+                            exportOptions: {
+                                modifier: {
+                                    search: 'applied'
+                                }
+                            }
                         },
                         {
                             extend: 'pdf',
                             text: '<i class="bx bx-file me-1"></i> PDF',
-                            className: 'btn btn-sm btn-danger'
+                            className: 'btn btn-sm btn-danger',
+                            exportOptions: {
+                                modifier: {
+                                    search: 'applied'
+                                }
+                            }
                         },
                         {
                             extend: 'print',
                             text: '<i class="bx bx-printer me-1"></i> Print',
-                            className: 'btn btn-sm btn-secondary'
+                            className: 'btn btn-sm btn-secondary',
+                            exportOptions: {
+                                modifier: {
+                                    search: 'applied'
+                                }
+                            }
                         },
                         {
                             extend: 'colvis',
@@ -183,19 +223,49 @@
                             className: 'btn btn-sm btn-info'
                         }
                     ],
-                    order: [[0, 'asc']],
-                    pageLength: 10,
-                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+                    order: [
+                        [0, 'asc']
+                    ],
+
+                    // 🔹 Hitung total subtotal
+                    footerCallback: function(row, data, start, end, display) {
+                        let api = this.api();
+
+                        // Kolom Subtotal = index ke-4 (bukan 5)
+                        let total = api
+                            .column(4, {
+                                search: 'applied'
+                            })
+                            .data()
+                            .reduce((sum, val) => {
+                                // Bersihkan HTML
+                                let text = $('<div>').html(val).text().trim();
+
+                                // Ambil angka dari teks (contoh: "Rp 25.000" → "25000")
+                                let cleaned = text.replace(/[^\d]/g, '');
+                                let num = cleaned ? parseFloat(cleaned) : 0;
+
+                                return sum + num;
+                            }, 0);
+
+                        // Format angka menjadi Rp dengan pemisah ribuan
+                        let formatted = new Intl.NumberFormat('id-ID').format(total);
+                        $(api.column(4).footer()).html('Rp ' + formatted);
+                    },
+
+                    initComplete: function() {
+                        $("#pengeluaranTable_filter").appendTo("#tableSearchContainer");
+                        $("#pengeluaranTable_filter label").addClass("mb-0");
+                    }
                 });
 
-                // Pindahkan tombol export ke header
+                // 🔹 Tempatkan tombol export di kanan atas
                 table.buttons().container().appendTo('#exportButtons');
 
-                // 🔥 LIVE date range filter (tanpa reload)
-                $('#tanggal_awal, #tanggal_akhir').on('change', function () {
+                // 🔹 Jalankan filter saat tanggal berubah
+                $('#minDate, #maxDate').on('change', function() {
                     table.draw();
                 });
-
             });
         </script>
         <style>
@@ -227,11 +297,11 @@
             document.addEventListener('DOMContentLoaded', () => {
 
                 // Jika ada pengeluaran baru
-                @if(session('new_pengeluaran_id'))
+                @if (session('new_pengeluaran_id'))
                     let pengeluaranId = {{ session('new_pengeluaran_id') }};
                     Swal.fire({
                         title: 'Pengeluaran berhasil ditambahkan!',
-                        text: 'Apakah Anda ingin mencetak tiket?',
+                        text: 'Apakah Anda ingin mencetak struk?',
                         icon: 'question',
                         showCancelButton: true,
                         confirmButtonText: 'Cetak',
@@ -246,7 +316,7 @@
                     });
                 @endif
 
-                        });
+            });
         </script>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
@@ -256,7 +326,7 @@
                 console.log('Jumlah form hapus ditemukan:', forms.length);
 
                 forms.forEach(form => {
-                    form.addEventListener('submit', function (e) {
+                    form.addEventListener('submit', function(e) {
                         e.preventDefault();
                         console.log('Form hapus diklik!');
 
@@ -278,7 +348,7 @@
                 });
 
                 // ✅ Notifikasi tambah berhasil
-                @if(session('success'))
+                @if (session('success'))
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil!',
@@ -289,7 +359,7 @@
                 @endif
 
                 // ✅ Notifikasi tambah berhasil
-                @if(session('updated'))
+                @if (session('updated'))
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil!',
@@ -300,7 +370,7 @@
                 @endif
 
                 // ✅ Notifikasi hapus berhasil
-                @if(session('deleted'))
+                @if (session('deleted'))
                     Swal.fire({
                         icon: 'success',
                         title: 'Dihapus!',
@@ -309,7 +379,7 @@
                         timer: 2000
                     });
                 @endif
-                                                                                                                                                                                                                                            });
+            });
         </script>
     @endpush
 
