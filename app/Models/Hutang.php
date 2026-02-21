@@ -17,6 +17,7 @@ class Hutang extends Model
         'keterangan',
         'total_hutang',
         'tanggal_bayar',
+        'sisa_hutang',
         'jatuh_tempo',
         'status',
     ];

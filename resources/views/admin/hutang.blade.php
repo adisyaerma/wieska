@@ -102,7 +102,7 @@
                             <th>Keterangan</th>
                             <th>Total Hutang</th>
                             <th>Jatuh Tempo</th>
-                            <th>Tanggal Bayar</th>
+                            <th>Tanggal Lunas</th>
                             <th>Sisa Hutang</th>
                             <th>Status</th>
                             <th>Aksi</th>

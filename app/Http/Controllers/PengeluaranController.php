@@ -32,64 +32,74 @@ class PengeluaranController extends Controller
             ->get();
         $karyawan = Karyawan::all();
         $hutang = Hutang::where('status', '!=', 'Lunas')->get();
-        return view('admin.pengeluaran.index', compact('data', 'karyawan', 'hutang'));
+        $hutang_edit = Hutang::all();
+        return view('admin.pengeluaran.index', compact('data', 'karyawan', 'hutang', 'hutang_edit'));
     }
+
     public function store(Request $request)
     {
         $request->validate([
-            'tanggal' => 'required',
+            'tanggal' => 'required|date',
             'jenis_pengeluaran' => 'required',
             'status' => 'required'
         ]);
 
         $nominal = 0;
+        $refrensi = null;
+        $nominalHutang = 0;
 
-        if ($request->jenis_pengeluaran == 'Gaji') {
-            $nominal = ($request->gaji_pokok ?? 0)
-                - ($request->potongan ?? 0)
-                + ($request->bonus ?? 0);
+        // 🔹 Tentukan nominal & refrensi
+        switch ($request->jenis_pengeluaran) {
+            case 'Gaji':
+                $nominal = ($request->gaji_pokok ?? 0)
+                        - ($request->potongan ?? 0)
+                        + ($request->bonus ?? 0);
+                $refrensi = $request->refrensi_id_gaji ?? null;
+                break;
+
+            case 'Operasional':
+            case 'Lainnya':
+                $nominal = $request->nominal_pengeluaran ?? 0;
+                break;
+
+            case 'Hutang':
+                $nominal = $request->nominal_pengeluaran_hutang ?? 0;
+                $nominalHutang = $nominal;
+                $refrensi = $request->refrensi_id_hutang ?? null;
+                break;
         }
 
-        if ($request->nominal_pengeluaran == 0) {
-            $nominalHutang = $request->nominal_pengeluaran_hutang ?? 0;
-        }
-
-        if (in_array($request->jenis_pengeluaran, ['Operasional', 'Lainnya'])) {
-            $nominal = $request->nominal_pengeluaran;
-        }
-
-        if ($request->jenis_pengeluaran == 'Hutang') {
-            $nominal = $request->nominal_pengeluaran_hutang;
-        } else {
-            $nominal = $request->nominal_pengeluaran;
-        }
-        if ($request->jenis_pengeluaran == 'Hutang') {
-            $refrensi = $request->refrensi_id_hutang ?? 0;
-        } else {
-            $refrensi = $request->refrensi_id_gaji ?? 0;
-        }
-
-
+        // 🔹 Simpan pengeluaran
         $pengeluaran = Pengeluaran::create([
             'tanggal' => $request->tanggal,
             'jenis_pengeluaran' => $request->jenis_pengeluaran,
-            'refrensi_id' => $refrensi ?? 0,
+            'refrensi_id' => $refrensi,
             'tujuan_pengeluaran' => $request->tujuan_pengeluaran ?? $request->jenis_pengeluaran,
-            'nominal_pengeluaran' => $nominal ?? 0,
+            'nominal_pengeluaran' => $nominal,
             'gaji_pokok' => $request->gaji_pokok,
             'potongan' => $request->potongan,
             'bonus' => $request->bonus,
             'status' => $request->status,
         ]);
 
-        // Update hutang jika Hutang
-        if ($request->jenis_pengeluaran === 'Hutang') {
-            $hutang = Hutang::find($request->refrensi_id);
+        // 🔹 Update hutang jika jenis = Hutang
+        if ($request->jenis_pengeluaran === 'Hutang' && $request->status !== 'Dibatalkan') {
+            $hutang = Hutang::find($refrensi);
 
-            // Hitung sisa hutang
-            $sisa = $hutang->total_hutang - $nominalHutang;
-            $hutang->sisa_hutang = $sisa > 0 ? $sisa : 0;
-            $hutang->status = $sisa <= 0 ? 'Lunas' : 'Belum Lunas';
+            if (!$hutang) {
+                return back()->withErrors('Data hutang tidak ditemukan');
+            }
+
+            $sisa = $hutang->sisa_hutang - $nominalHutang;
+            $hutang->sisa_hutang = max($sisa, 0);
+
+            if ($sisa <= 0) {
+                $hutang->status = 'Lunas';
+                $hutang->tanggal_bayar = $request->tanggal;
+            } else {
+                $hutang->status = 'Belum Lunas';
+                $hutang->tanggal_bayar = null;
+            }
 
             $hutang->save();
         }
@@ -97,6 +107,7 @@ class PengeluaranController extends Controller
         return redirect()->route('pengeluaran.index')
             ->with('new_pengeluaran_id', $pengeluaran->id);
     }
+
 
     public function print($id)
     {
@@ -208,51 +219,76 @@ class PengeluaranController extends Controller
     {
         $pengeluaran = Pengeluaran::findOrFail($id);
 
-        $nominal = 0;
+        $nominalLama = $pengeluaran->nominal_pengeluaran;
+        $statusLama  = $pengeluaran->status;
 
-        // === GAJI ===
-        if ($request->jenis_pengeluaran === 'Gaji') {
-            $nominal = ($request->gaji_pokok ?? 0)
+        // === HITUNG NOMINAL BARU ===
+        if ($request->jenis_pengeluaran === 'Hutang') {
+            $nominalBaru = $request->nominal_hutang;
+        } elseif ($request->jenis_pengeluaran === 'Gaji') {
+            $nominalBaru = ($request->gaji_pokok ?? 0)
                 - ($request->potongan ?? 0)
                 + ($request->bonus ?? 0);
+        } else {
+            $nominalBaru = $request->nominal_operasional;
         }
 
-        // === HUTANG ===
-        elseif ($request->jenis_pengeluaran === 'Hutang') {
-            $nominal = $request->nominal_hutang;
-        }
-
-        // === OPERASIONAL / LAINNYA ===
-        else {
-            $nominal = $request->nominal_operasional;
-        }
-
-        if ($nominal <= 0) {
+        if ($nominalBaru <= 0) {
             return back()->withErrors('Nominal tidak valid');
         }
 
+        // ================== HUTANG ==================
+        if ($pengeluaran->jenis_pengeluaran === 'Hutang') {
+            $hutang = Hutang::find($pengeluaran->refrensi_id);
+
+            if (!$hutang) {
+                return back()->withErrors('Data hutang tidak ditemukan');
+            }
+
+            // 🔁 ROLLBACK JIKA DULU AKTIF
+            if ($statusLama !== 'Dibatalkan') {
+                $hutang->sisa_hutang += $nominalLama;
+            }
+
+            // 🔕 JIKA SEKARANG DIBATALKAN → STOP
+            if ($request->status === 'Dibatalkan') {
+                $hutang->status = 'Belum Lunas';
+                $hutang->tanggal_bayar = null;
+                $hutang->save();
+            } else {
+                // ➖ POTONG ULANG
+                $sisaBaru = $hutang->sisa_hutang - $nominalBaru;
+
+                if ($sisaBaru < 0) {
+                    return back()->withErrors('Nominal melebihi sisa hutang');
+                }
+
+                $hutang->sisa_hutang = $sisaBaru;
+
+                if ($sisaBaru == 0) {
+                    $hutang->status = 'Lunas';
+                    $hutang->tanggal_bayar = $request->tanggal;
+                } else {
+                    $hutang->status = 'Belum Lunas';
+                    $hutang->tanggal_bayar = null;
+                }
+
+                $hutang->save();
+            }
+        }
+
+        // ================== UPDATE PENGELUARAN ==================
         $pengeluaran->update([
             'tanggal' => $request->tanggal,
             'jenis_pengeluaran' => $request->jenis_pengeluaran,
             'refrensi_id' => $request->refrensi_id ?? 0,
             'tujuan_pengeluaran' => $request->tujuan_pengeluaran ?? $request->jenis_pengeluaran,
-            'nominal_pengeluaran' => $nominal,
+            'nominal_pengeluaran' => $nominalBaru,
             'gaji_pokok' => $request->gaji_pokok,
             'potongan' => $request->potongan,
             'bonus' => $request->bonus,
             'status' => $request->status,
         ]);
-
-        if ($request->jenis_pengeluaran === 'Hutang') {
-            $hutang = Hutang::find($request->refrensi_id);
-
-            // Hitung sisa hutang
-            $sisa = $hutang->total_hutang - $request->nominal_hutang;
-            $hutang->sisa_hutang = $sisa > 0 ? $sisa : 0;
-            $hutang->status = $sisa <= 0 ? 'Lunas' : 'Belum Lunas';
-
-            $hutang->save();
-        }
 
         return back()->with('success', 'Pengeluaran berhasil diperbarui');
     }

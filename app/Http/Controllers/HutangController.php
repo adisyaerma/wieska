@@ -33,12 +33,14 @@ class HutangController extends Controller
             'pihak' => $request->pihak,
             'keterangan' => $request->keterangan,
             'total_hutang' => $request->total_hutang,
+            'sisa_hutang' => $request->total_hutang,
             'jatuh_tempo' => $request->jatuh_tempo,
             'status' => 'Belum Lunas',
         ]);
 
         return back()->with('success', 'Hutang ditambahkan');
     }
+
 
     public function update(Request $request, Hutang $hutang)
     {
