@@ -1,7 +1,7 @@
 @extends('admin.master')
 @section('title', 'Detail Pengeluaran')
 @section('pengeluaranActive', 'active')
-@section('masterDataActive', 'active open')
+@section('transaksiActive', 'active open')
 
 @section('isi')
     <div class="container-xxl container-p-y">

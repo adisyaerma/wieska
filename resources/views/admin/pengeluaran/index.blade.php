@@ -1,7 +1,7 @@
 @extends('admin.master')
 @section('title', 'Pengeluaran')
 @section('pengeluaranActive', 'active')
-@section('masterDataActive', 'active open')
+@section('transaksiActive', 'active open')
 @section('isi')
     <div class="container-xxl flex-grow-1 container-p-y">
         <!-- Basic Bootstrap Table -->
