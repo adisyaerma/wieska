@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('total_hutang');   // Total hutang
             $table->date('tanggal_bayar')->nullable();// Tanggal bayar
             $table->date('jatuh_tempo');              // Jatuh tempo
+            $table->integer('sisa_hutang')->nullable();              // Jatuh tempo
             $table->enum('status', [
                 'Belum Lunas',
                 'Lunas',

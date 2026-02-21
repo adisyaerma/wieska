@@ -103,6 +103,7 @@
                             <th>Total Hutang</th>
                             <th>Jatuh Tempo</th>
                             <th>Tanggal Bayar</th>
+                            <th>Sisa Hutang</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -118,13 +119,14 @@
                                 <td>Rp {{ number_format($hutang->total_hutang, 0, ',', '.') }}</td>
                                 <td>{{ $hutang->jatuh_tempo->format('d-m-Y') }}</td>
                                 <td>{{ $hutang->tanggal_bayar ? $hutang->tanggal_bayar->format('d-m-Y') : '-' }}</td>
+                                <td>Rp {{ number_format($hutang->sisa_hutang, 0, ',', '.') }}</td>
                                 <td>
                                     @if ($hutang->status == 'Belum Lunas')
                                         <span class="badge bg-warning mb-1 d-block">Belum Lunas</span>
-                                        <button class="btn btn-sm btn-success"
+                                        {{-- <button class="btn btn-sm btn-success"
                                             onclick="konfirmasiLunas({{ $hutang->id }})">
                                             Konfirmasi Lunas
-                                        </button>
+                                        </button> --}}
                                     @elseif ($hutang->status == 'Lunas')
                                         <span class="badge bg-success">Lunas</span>
                                     @else
