@@ -85,10 +85,12 @@ class PengeluaranController extends Controller
         // Update hutang jika Hutang
         if ($request->jenis_pengeluaran === 'Hutang') {
             $hutang = Hutang::find($request->refrensi_id);
-            $hutang->total_hutang -= $nominalHutang;
-            if ($hutang->total_hutang <= 0) {
-                $hutang->status = 'Lunas';
-            }
+
+            // Hitung sisa hutang
+            $sisa = $hutang->total_hutang - $nominalHutang;
+            $hutang->sisa_hutang = $sisa > 0 ? $sisa : 0;
+            $hutang->status = $sisa <= 0 ? 'Lunas' : 'Belum Lunas';
+
             $hutang->save();
         }
 
@@ -243,10 +245,12 @@ class PengeluaranController extends Controller
 
         if ($request->jenis_pengeluaran === 'Hutang') {
             $hutang = Hutang::find($request->refrensi_id);
-            $hutang->total_hutang -= $request->nominal_hutang;
-            if ($hutang->total_hutang <= 0) {
-                $hutang->status = 'Lunas';
-            }
+
+            // Hitung sisa hutang
+            $sisa = $hutang->total_hutang - $request->nominal_hutang;
+            $hutang->sisa_hutang = $sisa > 0 ? $sisa : 0;
+            $hutang->status = $sisa <= 0 ? 'Lunas' : 'Belum Lunas';
+
             $hutang->save();
         }
 

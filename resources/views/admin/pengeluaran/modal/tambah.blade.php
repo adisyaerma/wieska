@@ -30,7 +30,7 @@
                 <div id="form-operasional" class="d-none">
                     <div class="mb-3">
                         <label>Tujuan Pengeluaran</label>
-                        <input type="text" name="tujuan_pengeluaran" placeholder="Masukkan Tujuan Pengeluaran" class="form-control" required>
+                        <input type="text" name="tujuan_pengeluaran" placeholder="Masukkan Tujuan Pengeluaran" class="form-control">
                     </div>
                     <div class="mb-3">
                         <label>Nominal</label>
@@ -42,7 +42,7 @@
                 <div id="form-gaji" class="d-none">
                     <div class="mb-3">
                         <label>Karyawan</label>
-                        <select name="refrensi_id_gaji" class="form-control" required>
+                        <select name="refrensi_id_gaji" class="form-control">
                             @foreach($karyawan as $k)
                                 <option value="{{ $k->id }}">{{ $k->nama }}</option>
                             @endforeach
@@ -51,7 +51,7 @@
 
                     <div class="mb-3">
                         <label>Gaji Pokok</label>
-                        <input type="number" id="gaji_pokok" name="gaji_pokok" placeholder="Masukkan Gaji Pokok" class="form-control" required>
+                        <input type="number" id="gaji_pokok" name="gaji_pokok" placeholder="Masukkan Gaji Pokok" class="form-control">
                     </div>
 
                     <div class="row">
@@ -93,7 +93,7 @@
 
                     <div class="mb-3">
                         <label>Nominal Bayar</label>
-                        <input type="number" name="nominal_pengeluaran_hutang" placeholder="Masukkan Nominal Bayar Hutang" class="form-control" required>
+                        <input type="number" name="nominal_pengeluaran_hutang" placeholder="Masukkan Nominal Bayar Hutang" class="form-control">
                     </div>
                 </div>
 

@@ -19,6 +19,7 @@ use App\Http\Controllers\HutangController;
 use App\Http\Controllers\LabaController;
 use App\Http\Controllers\DetailLabaTiketController;
 use App\Http\Controllers\DetailLabaCafeController;
+use App\Http\Controllers\KasController;
 use App\Http\Controllers\PengeluaranController;
 
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -115,6 +116,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pengeluaran/filter-tanggal', [PengeluaranController::class, 'filterTanggal'])->name('pengeluaran.filterTanggal');
         Route::delete('admin/pengeluaran/delete/{pengeluaran}', [PengeluaranController::class, 'destroy'])->name('pengeluaran.destroy');
 
+        Route::get('admin/kas', [KasController::class, 'index'])->name('kas.index');
+
         // ---------------- BOOKING ----------------
         Route::get('admin/booking', [BookingController::class, 'index'])
             ->name('booking.index');
@@ -133,7 +136,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/admin/booking/{id}/hadir', [BookingController::class, 'hadir']);
 
-                // ---------------- HUTANG ----------------
+        // ---------------- HUTANG ----------------
         Route::get('admin/hutang', [HutangController::class, 'index'])
             ->name('hutang.index');
 
@@ -156,9 +159,6 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('admin/laba/cafe/{tanggal}', [DetailLabaCafeController::class, 'index'])
             ->name('laba.detail.cafe');
-
-
-
     });
 
 
