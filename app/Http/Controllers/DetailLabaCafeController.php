@@ -45,7 +45,14 @@ class DetailLabaCafeController extends Controller
                 ')
             )
             ->get();
+        
+        $kembalianCafe = DB::table('pengeluarans')
+            ->whereDate('tanggal', $tanggal)
+            ->where('jenis_pengeluaran', 'Kembalian Cafe')
+            ->where('status', 'Valid')
+            ->sum('nominal_pengeluaran');
 
-        return view('admin.detail_laba_cafe', compact('detail', 'tanggal'));
+
+        return view('admin.detail_laba_cafe', compact('detail', 'tanggal', 'kembalianCafe'));
     }
 }

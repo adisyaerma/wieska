@@ -22,6 +22,12 @@ class DetailLabaTiketController extends Controller
             )
             ->get();
 
-        return view('admin.detail_laba_tiket', compact('detail', 'tanggal'));
+        $kembalianTiket = DB::table('pengeluarans')
+            ->whereDate('tanggal', $tanggal)
+            ->where('jenis_pengeluaran', 'Kembalian Tiket')
+            ->where('status', 'Valid')
+            ->sum('nominal_pengeluaran');
+
+        return view('admin.detail_laba_tiket', compact('detail', 'tanggal', 'kembalianTiket'));
     }
 }

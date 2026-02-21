@@ -74,16 +74,36 @@
                             </tr>
                         @endforeach
                     </tbody>
+                    @php
+                        $labaBersih = $totalLaba - $kembalianCafe;
+                    @endphp
 
                     {{-- TOTAL --}}
-                    <tfoot class="">
+                    <tfoot>
                         <tr>
                             <th colspan="6" class="text-end">TOTAL</th>
                             <th>Rp {{ number_format($totalOmzet, 0, ',', '.') }}</th>
                             <th>Rp {{ number_format($totalModal, 0, ',', '.') }}</th>
                             <th>Rp {{ number_format($totalLaba, 0, ',', '.') }}</th>
                         </tr>
+
+                        {{-- KEMBALIAN --}}
+                        <tr>
+                            <th colspan="8" class="text-end text-warning">KEMBALIAN CAFE</th>
+                            <th class="text-warning">
+                                - Rp {{ number_format($kembalianCafe, 0, ',', '.') }}
+                            </th>
+                        </tr>
+
+                        {{-- LABA BERSIH --}}
+                        <tr class="table-success fw-bold">
+                            <th colspan="8" class="text-end">LABA BERSIH</th>
+                            <th>
+                                Rp {{ number_format($labaBersih, 0, ',', '.') }}
+                            </th>
+                        </tr>
                     </tfoot>
+
                 </table>
             </div>
 

@@ -48,33 +48,38 @@ class PengeluaranController extends Controller
         $refrensi = null;
         $nominalHutang = 0;
 
-        // 🔹 Tentukan nominal & refrensi
         switch ($request->jenis_pengeluaran) {
             case 'Gaji':
                 $nominal = ($request->gaji_pokok ?? 0)
                     - ($request->potongan ?? 0)
                     + ($request->bonus ?? 0);
-                $refrensi = $request->refrensi_id_gaji ?? null;
+                $refrensi = $request->refrensi_id_gaji ?? 0;
                 break;
 
             case 'Operasional':
             case 'Lainnya':
                 $nominal = $request->nominal_pengeluaran ?? 0;
+                $refrensi = 0;
                 break;
 
             case 'Hutang':
                 $nominal = $request->nominal_pengeluaran_hutang ?? 0;
                 $nominalHutang = $nominal;
-                $refrensi = $request->refrensi_id_hutang ?? null;
+                $refrensi = $request->refrensi_id_hutang ?? 0;
                 break;
 
-            case 'Kembalian':
+            case 'Kembalian Cafe':
+            case 'Kembalian Tiket':
                 $nominal = $request->nominal_kembalian ?? 0;
                 $refrensi = 0;
                 break;
         }
 
-        // 🔹 Simpan pengeluaran
+
+        if ($nominal <= 0) {
+            return back()->withErrors('Nominal tidak valid');
+        }
+
         $pengeluaran = Pengeluaran::create([
             'tanggal' => $request->tanggal,
             'jenis_pengeluaran' => $request->jenis_pengeluaran,
@@ -87,18 +92,23 @@ class PengeluaranController extends Controller
             'status' => $request->status,
         ]);
 
-        // 🔹 Update hutang jika jenis = Hutang
+        // ================== UPDATE HUTANG ==================
         if ($request->jenis_pengeluaran === 'Hutang' && $request->status !== 'Dibatalkan') {
-            $hutang = Hutang::find($refrensi);
 
+            $hutang = Hutang::find($refrensi);
             if (!$hutang) {
                 return back()->withErrors('Data hutang tidak ditemukan');
             }
 
             $sisa = $hutang->sisa_hutang - $nominalHutang;
-            $hutang->sisa_hutang = max($sisa, 0);
 
-            if ($sisa <= 0) {
+            if ($sisa < 0) {
+                return back()->withErrors('Nominal melebihi sisa hutang');
+            }
+
+            $hutang->sisa_hutang = $sisa;
+
+            if ($sisa == 0) {
                 $hutang->status = 'Lunas';
                 $hutang->tanggal_bayar = $request->tanggal;
             } else {
@@ -110,9 +120,8 @@ class PengeluaranController extends Controller
         }
 
         return redirect()->route('pengeluaran.index')
-            ->with('new_pengeluaran_id', $pengeluaran->id);
+            ->with('success', 'Pengeluaran berhasil ditambahkan');
     }
-
 
     public function print($id)
     {
@@ -228,16 +237,24 @@ class PengeluaranController extends Controller
         $statusLama  = $pengeluaran->status;
 
         // === HITUNG NOMINAL BARU ===
-        if ($request->jenis_pengeluaran === 'Hutang') {
-            $nominalBaru = $request->nominal_hutang;
-        } elseif ($request->jenis_pengeluaran === 'Gaji') {
-            $nominalBaru = ($request->gaji_pokok ?? 0)
-                - ($request->potongan ?? 0)
-                + ($request->bonus ?? 0);
-        } elseif ($request->jenis_pengeluaran === 'Kembalian') {
-            $nominalBaru = $request->nominal_kembalian;
-        } else {
-            $nominalBaru = $request->nominal_operasional;
+        switch ($request->jenis_pengeluaran) {
+            case 'Hutang':
+                $nominalBaru = $request->nominal_pengeluaran_hutang;
+                break;
+
+            case 'Gaji':
+                $nominalBaru = ($request->gaji_pokok ?? 0)
+                    - ($request->potongan ?? 0)
+                    + ($request->bonus ?? 0);
+                break;
+
+            case 'Kembalian Cafe':
+            case 'Kembalian Tiket':
+                $nominalBaru = $request->nominal_kembalian;
+                break;
+
+            default:
+                $nominalBaru = $request->nominal_pengeluaran;
         }
 
         if ($nominalBaru <= 0) {
@@ -246,24 +263,21 @@ class PengeluaranController extends Controller
 
         // ================== HUTANG ==================
         if ($pengeluaran->jenis_pengeluaran === 'Hutang') {
-            $hutang = Hutang::find($pengeluaran->refrensi_id);
 
+            $hutang = Hutang::find($pengeluaran->refrensi_id);
             if (!$hutang) {
                 return back()->withErrors('Data hutang tidak ditemukan');
             }
 
-            // 🔁 ROLLBACK JIKA DULU AKTIF
+            // 🔁 rollback nominal lama (jika dulu aktif)
             if ($statusLama !== 'Dibatalkan') {
                 $hutang->sisa_hutang += $nominalLama;
             }
 
-            // 🔕 JIKA SEKARANG DIBATALKAN → STOP
             if ($request->status === 'Dibatalkan') {
                 $hutang->status = 'Belum Lunas';
                 $hutang->tanggal_bayar = null;
-                $hutang->save();
             } else {
-                // ➖ POTONG ULANG
                 $sisaBaru = $hutang->sisa_hutang - $nominalBaru;
 
                 if ($sisaBaru < 0) {
@@ -279,16 +293,16 @@ class PengeluaranController extends Controller
                     $hutang->status = 'Belum Lunas';
                     $hutang->tanggal_bayar = null;
                 }
-
-                $hutang->save();
             }
+
+            $hutang->save();
         }
 
         // ================== UPDATE PENGELUARAN ==================
         $pengeluaran->update([
             'tanggal' => $request->tanggal,
             'jenis_pengeluaran' => $request->jenis_pengeluaran,
-            'refrensi_id' => $request->refrensi_id ?? 0,
+            'refrensi_id' => $request->refrensi_id,
             'tujuan_pengeluaran' => $request->tujuan_pengeluaran ?? $request->jenis_pengeluaran,
             'nominal_pengeluaran' => $nominalBaru,
             'gaji_pokok' => $request->gaji_pokok,
@@ -299,6 +313,7 @@ class PengeluaranController extends Controller
 
         return back()->with('success', 'Pengeluaran berhasil diperbarui');
     }
+
 
     public function destroy($id)
     {

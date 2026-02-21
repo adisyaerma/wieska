@@ -22,7 +22,8 @@
                         <option value="Operasional">Operasional</option>
                         <option value="Gaji">Gaji</option>
                         <option value="Hutang">Hutang</option>
-                        <option value="Kembalian">Kembalian</option>
+                        <option value="Kembalian Cafe">Kembalian Cafe</option>
+                        <option value="Kembalian Tiket">Kembalian Tiket</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
@@ -138,7 +139,7 @@
 
     jenis.addEventListener('change', function () {
 
-        // reset semua
+        // reset semua form
         ['operasional', 'gaji', 'hutang', 'kembalian'].forEach(v => {
             document.getElementById(`form-${v}`)?.classList.add('d-none');
         });
@@ -155,7 +156,8 @@
             document.getElementById('form-hutang').classList.remove('d-none');
         }
 
-        if (this.value === 'Kembalian') {
+        // ✅ KEMBALIAN CAFE & TIKET
+        if (this.value === 'Kembalian Cafe' || this.value === 'Kembalian Tiket') {
             document.getElementById('form-kembalian').classList.remove('d-none');
         }
     });

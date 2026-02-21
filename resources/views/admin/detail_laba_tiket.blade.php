@@ -61,12 +61,31 @@
                             </tr>
                         @endforeach
                     </tbody>
+                    @php
+                        $labaBersih = $totalLaba - $kembalianTiket;
+                    @endphp
 
                     <tfoot class="">
                         <tr class="fw-bold">
                             <th colspan="5" class="text-end">TOTAL</th>
                             <th>Rp {{ number_format($totalSubtotal, 0, ',', '.') }}</th>
                             <th>Rp {{ number_format($totalLaba, 0, ',', '.') }}</th>
+                        </tr>
+
+                        {{-- KEMBALIAN --}}
+                        <tr>
+                            <th colspan="6" class="text-end text-warning">KEMBALIAN TIKET</th>
+                            <th class="text-warning">
+                                - Rp {{ number_format($kembalianTiket, 0, ',', '.') }}
+                            </th>
+                        </tr>
+
+                        {{-- LABA BERSIH --}}
+                        <tr class="table-success fw-bold">
+                            <th colspan="6" class="text-end">LABA BERSIH</th>
+                            <th>
+                                Rp {{ number_format($labaBersih, 0, ',', '.') }}
+                            </th>
                         </tr>
                     </tfoot>
 
