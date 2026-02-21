@@ -7,11 +7,12 @@
         <!-- Basic Bootstrap Table -->
         <div class="card mt-1">
             <div class="card-header d-flex justify-content-between align-items-center py-5">
-                <h5 class="mb-0 fs-4">Laba Cafe</h5>
+                <h5 class="mb-0 fs-4">Laba Cafe
+                    <small>{{ \Carbon\Carbon::parse(request('tanggal'))->format('d-m-Y') }}</small></h5>
                 <div class="d-flex align-items-center gap-2">
                     <!-- Tempat tombol export DataTables -->
                     <div id="exportButtons"></div>
-
+                    <a href="/admin/laba" class="btn btn-sm btn-secondary">Kembali</a>
                 </div>
 
             </div>
@@ -74,16 +75,36 @@
                             </tr>
                         @endforeach
                     </tbody>
+                    @php
+                        $labaBersih = $totalLaba - $kembalianCafe;
+                    @endphp
 
                     {{-- TOTAL --}}
-                    <tfoot class="">
+                    <tfoot>
                         <tr>
                             <th colspan="6" class="text-end">TOTAL</th>
                             <th>Rp {{ number_format($totalOmzet, 0, ',', '.') }}</th>
                             <th>Rp {{ number_format($totalModal, 0, ',', '.') }}</th>
                             <th>Rp {{ number_format($totalLaba, 0, ',', '.') }}</th>
                         </tr>
+
+                        {{-- KEMBALIAN --}}
+                        <tr>
+                            <th colspan="8" class="text-end text-warning">KEMBALIAN CAFE</th>
+                            <th class="text-warning">
+                                - Rp {{ number_format($kembalianCafe, 0, ',', '.') }}
+                            </th>
+                        </tr>
+
+                        {{-- LABA BERSIH --}}
+                        <tr class="table-success fw-bold">
+                            <th colspan="8" class="text-end">LABA BERSIH</th>
+                            <th>
+                                Rp {{ number_format($labaBersih, 0, ',', '.') }}
+                            </th>
+                        </tr>
                     </tfoot>
+
                 </table>
             </div>
 

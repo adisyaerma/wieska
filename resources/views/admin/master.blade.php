@@ -241,13 +241,17 @@
                                     'barang_masuk' => ['Transaksi', 'Barang Masuk'],
                                     'kasir_cafe' => ['Transaksi', 'Kasir Cafe'],
                                     'kasir_tiket' => ['Transaksi', 'Kasir Tiket'],
+                                    'booking' => ['Transaksi', 'Booking'],
+                                    'hutang' => ['Transaksi', 'Hutang'],
+                                    'pengeluaran' => ['Transaksi', 'Pengeluaran'],
 
                                     'riwayat_cafe' => ['Laporan', 'Pesanan Cafe'],
                                     'riwayat_tiket' => ['Laporan', 'Pesanan Tiket'],
                                     'stok_barang' => ['Laporan', 'Stok Menu'],
+                                    'laba' => ['Laporan', 'Laba'],
                                 ];
 
-                                $current = Request::segment(1); // ambil segment pertama dari URL
+                                $current = Request::segment(2)?? Request::segment(1); // ambil segment pertama dari URL
                             @endphp
 
                             <nav aria-label="breadcrumb">

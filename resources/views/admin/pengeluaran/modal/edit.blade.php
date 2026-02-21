@@ -27,7 +27,8 @@
                         <option value="Operasional">Operasional</option>
                         <option value="Gaji">Gaji</option>
                         <option value="Hutang">Hutang</option>
-                        <option value="Kembalian">Kembalian</option>
+                        <option value="Kembalian Cafe">Kembalian Cafe</option>
+                        <option value="Kembalian Tiket">Kembalian Tiket</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
@@ -148,7 +149,8 @@
             document.getElementById('edit-form-hutang').classList.remove('d-none');
         }
 
-        if (this.value === 'Kembalian') {
+        // ✅ KEMBALIAN CAFE & TIKET
+        if (this.value === 'Kembalian Cafe' || this.value === 'Kembalian Tiket') {
             document.getElementById('edit-form-kembalian').classList.remove('d-none');
         }
     });
@@ -185,8 +187,11 @@
                 edit_nominal_operasional.value = data.nominal_pengeluaran;
             }
 
-            // ✅ KEMBALIAN
-            if (data.jenis_pengeluaran === 'Kembalian') {
+            // ✅ KEMBALIAN CAFE / TIKET
+            if (
+                data.jenis_pengeluaran === 'Kembalian Cafe' ||
+                data.jenis_pengeluaran === 'Kembalian Tiket'
+            ) {
                 edit_nominal_kembalian.value = data.nominal_pengeluaran;
             }
 

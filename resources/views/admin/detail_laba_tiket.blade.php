@@ -7,14 +7,20 @@
         <!-- Basic Bootstrap Table -->
         <div class="card mt-1">
             <div class="card-header d-flex justify-content-between align-items-center py-5">
-                <h5 class="mb-0 fs-4">Laba Tiket</h5>
+                <h5 class="mb-0 fs-4">Laba
+                    Tiket<small>{{ \Carbon\Carbon::parse(request('tanggal'))->format('d-m-Y') }}</small>
+                    <br>
+                </h5>
+
                 <div class="d-flex align-items-center gap-2">
                     <!-- Tempat tombol export DataTables -->
                     <div id="exportButtons"></div>
 
+                    <a href="/admin/laba" class="btn btn-sm btn-secondary">Kembali</a>
                 </div>
 
             </div>
+
 
             <div class="table-responsive text-nowrap">
                 <table class="table" id="detailTiketTable">
@@ -61,12 +67,31 @@
                             </tr>
                         @endforeach
                     </tbody>
+                    @php
+                        $labaBersih = $totalLaba - $kembalianTiket;
+                    @endphp
 
                     <tfoot class="">
                         <tr class="fw-bold">
                             <th colspan="5" class="text-end">TOTAL</th>
                             <th>Rp {{ number_format($totalSubtotal, 0, ',', '.') }}</th>
                             <th>Rp {{ number_format($totalLaba, 0, ',', '.') }}</th>
+                        </tr>
+
+                        {{-- KEMBALIAN --}}
+                        <tr>
+                            <th colspan="6" class="text-end text-warning">KEMBALIAN TIKET</th>
+                            <th class="text-warning">
+                                - Rp {{ number_format($kembalianTiket, 0, ',', '.') }}
+                            </th>
+                        </tr>
+
+                        {{-- LABA BERSIH --}}
+                        <tr class="table-success fw-bold">
+                            <th colspan="6" class="text-end">LABA BERSIH</th>
+                            <th>
+                                Rp {{ number_format($labaBersih, 0, ',', '.') }}
+                            </th>
                         </tr>
                     </tfoot>
 
