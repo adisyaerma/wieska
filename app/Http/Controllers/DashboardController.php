@@ -154,8 +154,35 @@ class DashboardController extends Controller
         });
         $totalPendapatanMingguan = $totalMingguan->pluck('total_pendapatan');
 
+        $pendapatanTiketHarian = DB::table('tiket')
+            ->select(
+                DB::raw('DATE(tanggal) as tanggal'),
+                DB::raw('SUM(subtotal) as total')
+            )
+            ->groupBy(DB::raw('DATE(tanggal)'))
+            ->orderBy('tanggal')
+            ->get();
 
+        $tanggalTiket = $pendapatanTiketHarian->pluck('tanggal')->map(function ($tgl) {
+            return Carbon::parse($tgl)->translatedFormat('d M Y');
+        });
 
+        $totalTiketHarian = $pendapatanTiketHarian->pluck('total');
+
+        $pendapatanCafeHarian = DB::table('cafe')
+            ->select(
+                DB::raw('DATE(tanggal) as tanggal'),
+                DB::raw('SUM(subtotal) as total')
+            )
+            ->groupBy(DB::raw('DATE(tanggal)'))
+            ->orderBy('tanggal')
+            ->get();
+
+        $tanggalCafe = $pendapatanCafeHarian->pluck('tanggal')->map(function ($tgl) {
+            return Carbon::parse($tgl)->translatedFormat('d M Y');
+        });
+
+        $totalCafeHarian = $pendapatanCafeHarian->pluck('total');
         return view('admin.dashboard', [
             'jumlahTiketTerjual' => $jumlahTiketTerjual,
             'subtotalTiket' => $subtotalTiket,
@@ -170,7 +197,12 @@ class DashboardController extends Controller
             'tiketMingguanTotal' => $total,
             'tanggalPendapatan' => $tanggalPendapatan,
             'totalPendapatanMingguan' => $totalPendapatanMingguan,
+            'tanggalTiket' => $tanggalTiket,
+            'totalTiketHarian' => $totalTiketHarian,
 
+            // chart cafe
+            'tanggalCafe' => $tanggalCafe,
+            'totalCafeHarian' => $totalCafeHarian,
         ]);
     }
 
@@ -184,5 +216,4 @@ class DashboardController extends Controller
         }
         return round((($hariIni - $kemarin) / $kemarin) * 100, 2);
     }
-
 }

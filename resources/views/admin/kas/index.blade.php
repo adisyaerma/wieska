@@ -4,6 +4,32 @@
 @section('laporanActive', 'active open')
 @section('isi')
     <div class="container-xxl flex-grow-1 container-p-y">
+        <div class="card mb-3">
+            <div class="card-header">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <small class="text-muted">Total Kas Masuk</small>
+                        <div class="fs-4 fw-bold text-success" id="totalKasMasuk">
+                            Rp 0
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <small class="text-muted">Total Kas Keluar</small>
+                        <div class="fs-4 fw-bold text-danger" id="totalKasKeluar">
+                            Rp 0
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <small class="text-muted">Total Saldo Akhir</small>
+                        <div class="fs-4 fw-bold text-primary" id="totalSaldoAkhir">
+                            Rp 0
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Basic Bootstrap Table -->
         <div class="card mt-1">
             <div class="card-header d-flex justify-content-between align-items-center py-5">
@@ -21,10 +47,10 @@
                 <!-- Baris atas: Filter tanggal (kiri) + Search (kanan bawaan DataTables) -->
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="d-flex align-items-center gap-2 ms-3" id="filterContainer">
-                        <label for="minDate" class="form-label mb-0 fw-medium">Dari:</label>
-                        <input type="date" id="minDate" class="form-control form-control-sm" style="width: 160px;">
-                        <label for="maxDate" class="form-label mb-0 fw-medium">Sampai:</label>
-                        <input type="date" id="maxDate" class="form-control form-control-sm" style="width: 160px;">
+                        <label for="awal" class="form-label mb-0 fw-medium">Dari:</label>
+                        <input type="date" id="awal" class="form-control form-control-sm" style="width: 160px;">
+                        <label for="akhir" class="form-label mb-0 fw-medium">Sampai:</label>
+                        <input type="date" id="akhir" class="form-control form-control-sm" style="width: 160px;">
                     </div>
 
                     <!-- Tempat Search DataTables -->
@@ -107,134 +133,165 @@
                 document.getElementById('harga_value' + suffix).value = angka;
             }
         </script>
+        <script>
+            function hitungTotal(table) {
+                let api = table.api();
 
-        <script>~
-                $(document).ready(function () {
-                    // 🔹 Deteksi otomatis kolom tanggal
-                    let dateColIndex = 1;
-                    $('#kasTable thead th').each(function (i) {
-                        const txt = $(this).text().toLowerCase();
-                        if (txt.includes('tgl') || txt.includes('tanggal')) {
-                            dateColIndex = i;
-                            return false;
-                        }
-                    });
+                function sumColumn(colIndex) {
+                    return api
+                        .column(colIndex, { search: 'applied' })
+                        .data()
+                        .reduce(function (sum, val) {
+                            let text = $('<div>').html(val).text().trim();
+                            let cleaned = text.replace(/[^\d]/g, '');
+                            let num = cleaned ? parseInt(cleaned) : 0;
+                            return sum + num;
+                        }, 0);
+                }
 
-                    // 🔹 Fungsi bantu
-                    function stripTags(html) {
-                        return $('<div/>').html(html).text().trim();
+                let totalMasuk = sumColumn(2); // Kas Masuk
+                let totalKeluar = sumColumn(3); // Kas Keluar
+                let totalSaldo = totalMasuk - totalKeluar; // Saldo Akhir
+
+                let format = n => 'Rp ' + new Intl.NumberFormat('id-ID').format(n);
+
+                $('#totalKasMasuk').text(format(totalMasuk));
+                $('#totalKasKeluar').text(format(totalKeluar));
+                $('#totalSaldoAkhir').text(format(totalSaldo));
+            }
+        </script>
+
+        <script>
+            $(document).ready(function () {
+                // 🔹 Deteksi otomatis kolom tanggal
+                let dateColIndex = 1;
+                $('#kasTable thead th').each(function (i) {
+                    const txt = $(this).text().toLowerCase();
+                    if (txt.includes('tgl') || txt.includes('tanggal')) {
+                        dateColIndex = i;
+                        return false;
                     }
-
-                    function parseCellDate(s) {
-                        if (!s) return null;
-                        s = s.trim();
-                        const match = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-                        if (match) return new Date(match[3], match[2] - 1, match[1]);
-                        const dt = new Date(s);
-                        return isNaN(dt) ? null : new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
-                    }
-
-                    function parseInputDate(val) {
-                        if (!val) return null;
-                        const parts = val.split('-');
-                        return new Date(parts[0], parts[1] - 1, parts[2]);
-                    }
-
-                    // 🔹 Filter berdasarkan range tanggal
-                    $.fn.dataTable.ext.search.push(function (settings, data) {
-                        const min = parseInputDate($('#minDate').val());
-                        const max = parseInputDate($('#maxDate').val());
-                        const dateText = stripTags(data[dateColIndex]);
-                        const date = parseCellDate(dateText);
-                        if (!date) return true;
-                        if (min && date < min) return false;
-                        if (max && date > max) return false;
-                        return true;
-                    });
-
-                    // 🔹 Inisialisasi DataTable
-                    let table = $('#kasTable').DataTable({
-                        dom: 'Bfrtip',
-                        buttons: [{
-                            extend: 'excel',
-                            text: '<i class="bx bx-file me-1"></i> Excel',
-                            className: 'btn btn-sm btn-success',
-                            exportOptions: {
-                                modifier: {
-                                    search: 'applied'
-                                }
-                            }
-                        },
-                        {
-                            extend: 'pdf',
-                            text: '<i class="bx bx-file me-1"></i> PDF',
-                            className: 'btn btn-sm btn-danger',
-                            exportOptions: {
-                                modifier: {
-                                    search: 'applied'
-                                }
-                            }
-                        },
-                        {
-                            extend: 'print',
-                            text: '<i class="bx bx-printer me-1"></i> Print',
-                            className: 'btn btn-sm btn-secondary',
-                            exportOptions: {
-                                modifier: {
-                                    search: 'applied'
-                                }
-                            }
-                        },
-                        {
-                            extend: 'colvis',
-                            text: '<i class="bx bx-show me-1"></i> Kolom',
-                            className: 'btn btn-sm btn-info'
-                        }
-                        ],
-                        order: [
-                            [0, 'asc']
-                        ],
-
-                        // 🔹 Hitung total subtotal
-                        footerCallback: function (row, data, start, end, display) {
-                            let api = this.api();
-
-                            // Kolom Subtotal = index ke-4 (bukan 5)
-                            let total = api
-                                .column(4, {
-                                    search: 'applied'
-                                })
-                                .data()
-                                .reduce((sum, val) => {
-                                    // Bersihkan HTML
-                                    let text = $('<div>').html(val).text().trim();
-
-                                    // Ambil angka dari teks (contoh: "Rp 25.000" → "25000")
-                                    let cleaned = text.replace(/[^\d]/g, '');
-                                    let num = cleaned ? parseFloat(cleaned) : 0;
-
-                                    return sum + num;
-                                }, 0);
-
-                            // Format angka menjadi Rp dengan pemisah ribuan
-                            let formatted = new Intl.NumberFormat('id-ID').format(total);
-                            $(api.column(4).footer()).html('Rp ' + formatted);
-                        },
-
-                        initComplete: function () {
-                            $("#kasTable_filter").appendTo("#tableSearchContainer");
-                            $("#kasTable_filter label").addClass("mb-0");
-                        }
-                    });
-
-                    // 🔹 Tempatkan tombol export di kanan atas
-                    table.buttons().container().appendTo('#exportButtons');
-
-                    // 🔹 Jalankan filter saat tanggal berubah
-                    $('#minDate, #maxDate').on('change', function () {
-                        table.draw();
-                    });
                 });
+
+                // 🔹 Fungsi bantu
+                function stripTags(html) {
+                    return $('<div/>').html(html).text().trim();
+                }
+
+                function parseCellDate(s) {
+                    if (!s) return null;
+                    s = s.trim();
+                    const match = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+                    if (match) return new Date(match[3], match[2] - 1, match[1]);
+                    const dt = new Date(s);
+                    return isNaN(dt) ? null : new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+                }
+
+                function parseInputDate(val) {
+                    if (!val) return null;
+                    const parts = val.split('-');
+                    return new Date(parts[0], parts[1] - 1, parts[2]);
+                }
+
+                // 🔹 Filter berdasarkan range tanggal
+                $.fn.dataTable.ext.search.push(function (settings, data) {
+                    const min = parseInputDate($('#awal').val());
+                    const max = parseInputDate($('#akhir').val());
+                    const dateText = stripTags(data[dateColIndex]);
+                    const date = parseCellDate(dateText);
+                    if (!date) return true;
+                    if (min && date < min) return false;
+                    if (max && date > max) return false;
+                    return true;
+                });
+
+                // 🔹 Inisialisasi DataTable
+                let table = $('#kasTable').DataTable({
+                    dom: 'Bfrtip',
+                    buttons: [{
+                        extend: 'excel',
+                        text: '<i class="bx bx-file me-1"></i> Excel',
+                        className: 'btn btn-sm btn-success',
+                        exportOptions: {
+                            modifier: {
+                                search: 'applied'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="bx bx-file me-1"></i> PDF',
+                        className: 'btn btn-sm btn-danger',
+                        exportOptions: {
+                            modifier: {
+                                search: 'applied'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="bx bx-printer me-1"></i> Print',
+                        className: 'btn btn-sm btn-secondary',
+                        exportOptions: {
+                            modifier: {
+                                search: 'applied'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'colvis',
+                        text: '<i class="bx bx-show me-1"></i> Kolom',
+                        className: 'btn btn-sm btn-info'
+                    }
+                    ],
+                    order: [
+                        [0, 'asc']
+                    ],
+
+                    // 🔹 Hitung total subtotal
+                    footerCallback: function (row, data, start, end, display) {
+                        let api = this.api();
+
+                        // Kolom Subtotal = index ke-4 (bukan 5)
+                        let total = api
+                            .column(4, {
+                                search: 'applied'
+                            })
+                            .data()
+                            .reduce((sum, val) => {
+                                // Bersihkan HTML
+                                let text = $('<div>').html(val).text().trim();
+
+                                // Ambil angka dari teks (contoh: "Rp 25.000" → "25000")
+                                let cleaned = text.replace(/[^\d]/g, '');
+                                let num = cleaned ? parseFloat(cleaned) : 0;
+
+                                return sum + num;
+                            }, 0);
+
+                        // Format angka menjadi Rp dengan pemisah ribuan
+                        let formatted = new Intl.NumberFormat('id-ID').format(total);
+                        $(api.column(4).footer()).html('Rp ' + formatted);
+                    },
+
+                    initComplete: function awal() {
+                        $("#kasTable_filter").appendTo("#tableSearchContainer");
+                        $("#kasTable_filter label").addClass("mb-0");
+
+                        hitungTotal(this);
+                    }
+                });
+
+                table.buttons().container().appendTo('#exportButtons');
+                table.on('draw', function () {
+                    hitungTotal(table);
+                });
+
+                // 🔹 trigger redraw saat date berubah
+                $('#awal, #akhir').on('change', function () {
+                    table.draw();
+                });
+            });
         </script>
 
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -300,7 +357,7 @@
                         timer: 2000
                     });
                 @endif
-                                                            });
+                                                                                                                                    });
         </script>
 
         <script>

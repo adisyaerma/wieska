@@ -15,16 +15,16 @@
                       alt="chart success" class="rounded" />
                   </div>
                   <!-- <div class="dropdown">
-                                                              <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true"
-                                                                aria-expanded="false">
-                                                                <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
-                                                              </button>
-                                                              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
-                                                                <a class="dropdown-item" href="javascript:void(0);">Hari Ini</a>
-                                                                <a class="dropdown-item" href="javascript:void(0);">Bulan Ini</a>
-                                                                <a class="dropdown-item" href="javascript:void(0);">Tahun Ini</a>
-                                                              </div>
-                                                            </div> -->
+                                                                          <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                            aria-expanded="false">
+                                                                            <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
+                                                                          </button>
+                                                                          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
+                                                                            <a class="dropdown-item" href="javascript:void(0);">Hari Ini</a>
+                                                                            <a class="dropdown-item" href="javascript:void(0);">Bulan Ini</a>
+                                                                            <a class="dropdown-item" href="javascript:void(0);">Tahun Ini</a>
+                                                                          </div>
+                                                                        </div> -->
                 </div>
                 <p class="mb-1">Jumlah Menu Terjual Hari Ini</p>
                 <h4 class="card-title mb-3">{{ $jumlahCafeTerjual }}</h4>
@@ -52,16 +52,16 @@
 
                   </div>
                   <!-- <div class="dropdown">
-                                                              <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true"
-                                                                aria-expanded="false">
-                                                                <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
-                                                              </button>
-                                                              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
-                                                                <a class="dropdown-item" href="javascript:void(0);">Hari Ini</a>
-                                                                <a class="dropdown-item" href="javascript:void(0);">Bulan Ini</a>
-                                                                <a class="dropdown-item" href="javascript:void(0);">Tahun Ini</a>
-                                                              </div>
-                                                            </div> -->
+                                                                          <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                            aria-expanded="false">
+                                                                            <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
+                                                                          </button>
+                                                                          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
+                                                                            <a class="dropdown-item" href="javascript:void(0);">Hari Ini</a>
+                                                                            <a class="dropdown-item" href="javascript:void(0);">Bulan Ini</a>
+                                                                            <a class="dropdown-item" href="javascript:void(0);">Tahun Ini</a>
+                                                                          </div>
+                                                                        </div> -->
                 </div>
                 <p class="mb-1">Jumlah Tiket Terjual Hari Ini</p>
                 <h4 class="card-title mb-3">{{ $jumlahTiketTerjual }}</h4>
@@ -89,16 +89,16 @@
 
                   </div>
                   <!-- <div class="dropdown">
-                                                              <button class="btn p-0" type="button" id="cardOpt4" data-bs-toggle="dropdown" aria-haspopup="true"
-                                                                aria-expanded="false">
-                                                                <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
-                                                              </button>
-                                                              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
-                                                                <a class="dropdown-item" href="javascript:void(0);">Hari Ini</a>
-                                                                <a class="dropdown-item" href="javascript:void(0);">Bulan Ini</a>
-                                                                <a class="dropdown-item" href="javascript:void(0);">Tahun Ini</a>
-                                                              </div>
-                                                            </div> -->
+                                                                          <button class="btn p-0" type="button" id="cardOpt4" data-bs-toggle="dropdown" aria-haspopup="true"
+                                                                            aria-expanded="false">
+                                                                            <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
+                                                                          </button>
+                                                                          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
+                                                                            <a class="dropdown-item" href="javascript:void(0);">Hari Ini</a>
+                                                                            <a class="dropdown-item" href="javascript:void(0);">Bulan Ini</a>
+                                                                            <a class="dropdown-item" href="javascript:void(0);">Tahun Ini</a>
+                                                                          </div>
+                                                                        </div> -->
                 </div>
                 <p class="mb-1">Total Pendapatan Hari Ini</p>
                 <h4 class="card-title mb-3">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</h4>
@@ -142,10 +142,10 @@
                   <div class="tab-content p-0">
                     <div class="tab-pane fade show active" id="navs-tabs-line-card-income" role="tabpanel">
                       <!-- <div class="d-flex mb-6">
-                            <div class="avatar flex-shrink-0 me-3">
-                              <img src="template/sneat/assets/img/icons/unicons/wallet.png" alt="User" />
-                            </div>
-                          </div> -->
+                                        <div class="avatar flex-shrink-0 me-3">
+                                          <img src="template/sneat/assets/img/icons/unicons/wallet.png" alt="User" />
+                                        </div>
+                                      </div> -->
                       <canvas id="pendapatanChart" style="width:100%; max-width:700px; height:350px;"></canvas>
                     </div>
                   </div>
@@ -156,6 +156,29 @@
         </div>
       </div>
     </div>
+    <div class="card mb-3">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">Pendapatan Tiket per Tanggal</div>
+            <div class="card-body">
+              <canvas id="chartTiket"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">Pendapatan Cafe per Tanggal</div>
+            <div class="card-body">
+              <canvas id="chartCafe"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
     <!-- Basic Bootstrap Table -->
     <div class="card mt-1"> <!-- kasih margin top -->
       <div class="card-header d-flex justify-content-between align-items-center py-5">
@@ -395,6 +418,144 @@
 
 
       new Chart(ctx2, { type: 'line', data: data2, options: options2 });
+    </script>
+    <script>
+      const ctxTiket = document.getElementById('chartTiket').getContext('2d');
+
+      // Gradient
+      const gradientTiket = ctxTiket.createLinearGradient(0, 0, 0, 300);
+      gradientTiket.addColorStop(0, 'rgba(54, 162, 235, 0.4)');
+      gradientTiket.addColorStop(1, 'rgba(54, 162, 235, 0.05)');
+
+      new Chart(ctxTiket, {
+        type: 'line',
+        data: {
+          labels: @json($tanggalTiket),
+          datasets: [{
+            label: 'Pendapatan Tiket',
+            data: @json($totalTiketHarian),
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: gradientTiket,
+            fill: true,
+            tension: 0.4,
+            borderWidth: 3,
+            pointRadius: 4,
+            pointHoverRadius: 7,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: 'rgba(54, 162, 235, 1)',
+            pointBorderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          animation: {
+            duration: 1200,
+            easing: 'easeInOutQuart'
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 20
+              }
+            },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              titleColor: '#fff',
+              bodyColor: '#e5e7eb',
+              padding: 12,
+              callbacks: {
+                label: ctx => ' Rp ' + ctx.raw.toLocaleString('id-ID')
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0,0,0,0.05)',
+                borderDash: [5, 5]
+              },
+              ticks: {
+                callback: value => 'Rp ' + value.toLocaleString('id-ID')
+              }
+            }
+          }
+        }
+      });
+    </script>
+    <script>
+      const ctxCafe = document.getElementById('chartCafe').getContext('2d');
+
+      // Gradient
+      const gradientCafe = ctxCafe.createLinearGradient(0, 0, 0, 300);
+      gradientCafe.addColorStop(0, 'rgba(255, 159, 64, 0.4)');
+      gradientCafe.addColorStop(1, 'rgba(255, 159, 64, 0.05)');
+
+      new Chart(ctxCafe, {
+        type: 'line',
+        data: {
+          labels: @json($tanggalCafe),
+          datasets: [{
+            label: 'Pendapatan Cafe',
+            data: @json($totalCafeHarian),
+            borderColor: 'rgba(255, 159, 64, 1)',
+            backgroundColor: gradientCafe,
+            fill: true,
+            tension: 0.4,
+            borderWidth: 3,
+            pointRadius: 4,
+            pointHoverRadius: 7,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: 'rgba(255, 159, 64, 1)',
+            pointBorderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          animation: {
+            duration: 1200,
+            easing: 'easeInOutQuart'
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 20
+              }
+            },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              titleColor: '#fff',
+              bodyColor: '#e5e7eb',
+              padding: 12,
+              callbacks: {
+                label: ctx => ' Rp ' + ctx.raw.toLocaleString('id-ID')
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0,0,0,0.05)',
+                borderDash: [5, 5]
+              },
+              ticks: {
+                callback: value => 'Rp ' + value.toLocaleString('id-ID')
+              }
+            }
+          }
+        }
+      });
     </script>
 
   @endpush

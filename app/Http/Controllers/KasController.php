@@ -192,10 +192,6 @@ class KasController extends Controller
             ->sortBy('tanggal')
             ->values();
 
-        /* =======================
-     | KAS KELUAR
-     ======================= */
-
         $kasKeluar = DB::table('pengeluarans')
             ->whereDate('tanggal', $tanggal)
             ->where('status', 'Valid')
