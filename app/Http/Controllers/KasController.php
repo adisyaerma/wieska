@@ -153,7 +153,7 @@ class KasController extends Controller
                     'petugas'     => optional($c->karyawan)->nama,
                 ];
             });
-            // dd( $cafe);
+        // dd( $cafe);
 
         // BOOKING
         $booking = Booking::whereDate('tanggal', $tanggal)
@@ -171,13 +171,13 @@ class KasController extends Controller
 
         // HUTANG DIBAYAR (MASUK)
         $hutang = Hutang::whereDate('tanggal', $tanggal)
-
+            //->join('karyawan', 'hutang.id_karyw', '=', 'karyawan.id')
             ->get()
             ->map(function ($h) {
                 return [
                     'tanggal'     => $h->tanggal,
                     'sumber'      => 'Hutang',
-                    'keterangan'  => 'Pembayaran Hutang',
+                    'keterangan'  => 'Hutang ke ' . $h->pihak,
                     'total'       => $h->total_hutang,
                     'petugas'     => '-',
                 ];
@@ -193,6 +193,7 @@ class KasController extends Controller
             ->values();
 
         $kasKeluar = DB::table('pengeluarans')
+            ->join('karyawan', 'pengeluarans.user_id', '=', 'karyawan.id')
             ->whereDate('tanggal', $tanggal)
             ->where('status', 'Valid')
             ->get();

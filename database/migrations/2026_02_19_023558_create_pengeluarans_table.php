@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('nominal_pengeluaran');
             $table->integer('gaji_pokok')->nullable();
             $table->integer('potongan')->nullable();
+            $table->integer('user_id')->nullable();
             $table->integer('bonus')->nullable();
             $table->enum('status', ['Valid', 'Dibatalkan']);
             $table->timestamps();

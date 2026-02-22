@@ -89,6 +89,7 @@
                                 <tr>
                                     <th class="text-center">Jenis</th>
                                     <th class="text-center">Tujuan</th>
+                                    <th class="text-center">Petugas</th>
                                     <th class="text-center">Nominal</th>
                                 </tr>
                             </thead>
@@ -97,7 +98,8 @@
                                 @foreach($kasKeluar as $row)
                                     <tr>
                                         <td class="text-center">{{ $row->jenis_pengeluaran }}</td>
-                                        <td class="text-center">{{ $row->tujuan_pengeluaran ?? '-' }}</td>
+                                        <td class="text-center">{{ $row->jenis_pengeluaran }}</td>
+                                        <td class="text-center">{{ $row->nama }}</td>
                                         <td class="text-end">
                                             Rp {{ number_format($row->nominal_pengeluaran, 0, ',', '.') }}
                                         </td>
@@ -108,7 +110,7 @@
                             <!-- TOTAL -->
                             <tfoot class="fw-bold">
                                 <tr>
-                                    <td colspan="2" class="text-end">Total</td>
+                                    <td colspan="3" class="text-end">Total</td>
                                     <td class="text-end"></td>
                                 </tr>
                             </tfoot>
@@ -235,14 +237,14 @@
                         let api = this.api();
 
                         let total = api
-                            .column(2, { search: 'applied' }) // kolom Nominal
+                            .column(3, { search: 'applied' }) // kolom Nominal
                             .data()
                             .reduce(function (sum, val) {
                                 let clean = $('<div>').html(val).text().replace(/[^\d]/g, '');
                                 return sum + (parseInt(clean) || 0);
                             }, 0);
 
-                        $(api.column(2).footer())
+                        $(api.column(3).footer())
                             .html('Rp ' + new Intl.NumberFormat('id-ID').format(total));
                     }
                 });

@@ -85,7 +85,7 @@
                         <label>Hutang</label>
                         <select name="refrensi_id" id="edit_hutang" class="form-control">
                             @foreach($hutang_edit as $h)
-                                <option value="{{ $h->id }}">{{ $h->pihak }} -
+                                <option value="{{ $h->id }}" data-hutang="{{ $h->sisa_hutang }}">{{ $h->pihak }} -
                                     Rp{{ number_format($h->total_hutang, 0, ',', '.') }} - Rp
                                     {{ number_format($h->sisa_hutang, 0, ',', '.') }}
                                 </option>
@@ -96,6 +96,9 @@
                     <div class="mb-3">
                         <label>Nominal Bayar</label>
                         <input type="number" name="nominal_hutang" id="edit_nominal_hutang" class="form-control">
+                        <small id="warningHutangEdit" class="text-danger d-none">
+                            Nominal bayar melebihi sisa hutang
+                        </small>
                     </div>
                 </div>
 
@@ -199,4 +202,49 @@
 
         new bootstrap.Modal('#editPengeluaran').show();
     }
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const selectHutang = document.getElementById('edit_hutang');
+    const inputBayar  = document.getElementById('edit_nominal_hutang');
+    const warning     = document.getElementById('warningHutangEdit');
+
+    // ⛔ jika element tidak ada (halaman lain)
+    if (!selectHutang || !inputBayar || !warning) return;
+
+    let sisaHutang = 0;
+
+    function cekNominal() {
+        const bayar = parseInt(inputBayar.value || 0);
+
+        if (bayar > sisaHutang && sisaHutang > 0) {
+            warning.classList.remove('d-none');
+        } else {
+            warning.classList.add('d-none');
+        }
+    }
+
+    // saat hutang diganti
+    selectHutang.addEventListener('change', function () {
+        const selected = this.options[this.selectedIndex];
+        sisaHutang = parseInt(selected.dataset.hutang || 0);
+
+        cekNominal();
+    });
+
+    // saat nominal diketik
+    inputBayar.addEventListener('input', cekNominal);
+
+    // 🔥 ketika modal edit dibuka & sudah terisi data
+    window.addEventListener('shown.bs.modal', function (e) {
+        if (e.target.id === 'editPengeluaran') {
+            const selected = selectHutang.options[selectHutang.selectedIndex];
+            sisaHutang = parseInt(selected?.dataset.hutang || 0);
+            cekNominal();
+        }
+    });
+
+});
 </script>

@@ -7,6 +7,7 @@ use App\Models\Karyawan;
 use App\Models\Pengeluaran;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use function Laravel\Prompts\select;
 
@@ -31,7 +32,7 @@ class PengeluaranController extends Controller
             ->orderBy('pengeluarans.tanggal', 'desc')
             ->get();
         $karyawan = Karyawan::all();
-        $hutang = Hutang::where('status', '!=', 'Lunas')->get();
+        $hutang = Hutang::where('status', '!=', 'Belum Lunas')->get();
         $hutang_edit = Hutang::all();
         return view('admin.pengeluaran.index', compact('data', 'karyawan', 'hutang', 'hutang_edit'));
     }
@@ -79,11 +80,13 @@ class PengeluaranController extends Controller
         if ($nominal <= 0) {
             return back()->withErrors('Nominal tidak valid');
         }
+        $idUser = Auth::id();
 
         $pengeluaran = Pengeluaran::create([
             'tanggal' => $request->tanggal,
             'jenis_pengeluaran' => $request->jenis_pengeluaran,
             'refrensi_id' => $refrensi,
+            'user_id' => $idUser,
             'tujuan_pengeluaran' => $request->tujuan_pengeluaran ?? $request->jenis_pengeluaran,
             'nominal_pengeluaran' => $nominal,
             'gaji_pokok' => $request->gaji_pokok,
@@ -297,17 +300,19 @@ class PengeluaranController extends Controller
 
             $hutang->save();
         }
+        $idUser = Auth::id();
 
         // ================== UPDATE PENGELUARAN ==================
         $pengeluaran->update([
             'tanggal' => $request->tanggal,
             'jenis_pengeluaran' => $request->jenis_pengeluaran,
-            'refrensi_id' => $request->refrensi_id,
+            'refrensi_id' => $request->refrensi_id ?? 0,
             'tujuan_pengeluaran' => $request->tujuan_pengeluaran ?? $request->jenis_pengeluaran,
             'nominal_pengeluaran' => $nominalBaru,
             'gaji_pokok' => $request->gaji_pokok,
             'potongan' => $request->potongan,
             'bonus' => $request->bonus,
+            'user_id' => $idUser,
             'status' => $request->status,
         ]);
 

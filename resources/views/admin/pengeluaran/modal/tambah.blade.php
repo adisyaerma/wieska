@@ -1,6 +1,6 @@
 <!-- Modal -->
 <div class="modal fade" id="tambahPengeluaran" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <form action="{{ route('pengeluaran.store') }}" method="POST" class="modal-content">
             @csrf
             <div class="modal-header">
@@ -88,10 +88,10 @@
                 <div id="form-hutang" class="d-none">
                     <div class="mb-3">
                         <label>Bayar Hutang</label>
-                        <select name="refrensi_id_hutang" class="form-control">
+                        <select name="refrensi_id_hutang" class="form-control" id="hutang_add">
                             <option value="">-- Pilih --</option>
                             @foreach($hutang as $h)
-                                <option value="{{ $h->id }}">
+                                <option value="{{ $h->id }}" data-sisa="{{ $h->sisa_hutang }}">
                                     {{ $h->pihak }} - Rp{{ number_format($h->total_hutang, 0, ',', '.') }} - Rp
                                     {{ number_format($h->sisa_hutang, 0, ',', '.') }}
                                 </option>
@@ -101,8 +101,14 @@
 
                     <div class="mb-3">
                         <label>Nominal Bayar</label>
-                        <input type="number" name="nominal_pengeluaran_hutang"
-                            placeholder="Masukkan Nominal Bayar Hutang" class="form-control">
+                        {{-- <input type="number" name="nominal_pengeluaran_hutang"
+                            placeholder="Masukkan Nominal Bayar Hutang" class="form-control"> --}}
+                        <input type="number" name="nominal_pengeluaran_hutang" id="nominal_bayar" class="form-control"
+                            placeholder="Masukkan nominal bayar">
+
+                        <small id="warningHutang" class="text-danger d-none">
+                            Nominal bayar melebihi sisa hutang
+                        </small>
                     </div>
                 </div>
 
@@ -174,5 +180,32 @@
 
     ['gaji_pokok', 'potongan', 'bonus'].forEach(id => {
         document.getElementById(id).addEventListener('input', hitungGaji);
+    });
+</script>
+
+<script>
+    const selectHutang = document.getElementById('hutang_add');
+    const inputBayar = document.getElementById('nominal_bayar');
+    const warning = document.getElementById('warningHutang');
+
+    let sisaHutang = 0;
+
+    selectHutang.addEventListener('change', function () {
+        const selected = this.options[this.selectedIndex];
+        sisaHutang = parseInt(selected.dataset.sisa || 0);
+
+        // reset warning & input
+        warning.classList.add('d-none');
+        inputBayar.value = '';
+    });
+
+    inputBayar.addEventListener('input', function () {
+        const bayar = parseInt(this.value || 0);
+
+        if (bayar > sisaHutang && sisaHutang > 0) {
+            warning.classList.remove('d-none');
+        } else {
+            warning.classList.add('d-none');
+        }
     });
 </script>
