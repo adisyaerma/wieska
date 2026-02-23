@@ -33,7 +33,7 @@
                             <th>Jumlah</th>
                             <th>Harga Jual</th>
                             <th>Harga Beli</th>
-                            <th>Omzet</th>
+                            <th>Subtotal</th>
                             <th>Modal</th>
                             <th>Laba</th>
                         </tr>
