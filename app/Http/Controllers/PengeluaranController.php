@@ -234,89 +234,108 @@ class PengeluaranController extends Controller
 
     public function update(Request $request, $id)
     {
-        $pengeluaran = Pengeluaran::findOrFail($id);
+        try {
 
-        $nominalLama = $pengeluaran->nominal_pengeluaran;
-        $statusLama  = $pengeluaran->status;
 
-        // === HITUNG NOMINAL BARU ===
-        switch ($request->jenis_pengeluaran) {
-            case 'Hutang':
-                $nominalBaru = $request->nominal_pengeluaran_hutang;
-                break;
+            $pengeluaran = Pengeluaran::findOrFail($id);
 
-            case 'Gaji':
-                $nominalBaru = ($request->gaji_pokok ?? 0)
-                    - ($request->potongan ?? 0)
-                    + ($request->bonus ?? 0);
-                break;
+            $nominalLama = $pengeluaran->nominal_pengeluaran;
+            $statusLama  = $pengeluaran->status;
 
-            case 'Kembalian Cafe':
-            case 'Kembalian Tiket':
-                $nominalBaru = $request->nominal_kembalian;
-                break;
+            // === HITUNG NOMINAL BARU ===
+            switch ($request->jenis_pengeluaran) {
+                case 'Hutang':
+                    $nominalBaru = (int) ($request->nominal_hutang ?? 0);
+                    break;
 
-            default:
-                $nominalBaru = $request->nominal_pengeluaran;
-        }
+                case 'Gaji':
+                    $nominalBaru = ($request->gaji_pokok ?? 0)
+                        - ($request->potongan ?? 0)
+                        + ($request->bonus ?? 0);
+                    break;
 
-        if ($nominalBaru <= 0) {
-            return back()->withErrors('Nominal tidak valid');
-        }
+                case 'Kembalian Cafe':
+                case 'Kembalian Tiket':
+                    $nominalBaru = $request->nominal_kembalian;
+                    break;
+                case 'Operasional':
+                    $nominalBaru = $request->nominal_operasional;
+                    break;
+                case 'Lainnya':
+                    $nominalBaru = $request->nominal_operasional;
+                    break;
 
-        // ================== HUTANG ==================
-        if ($pengeluaran->jenis_pengeluaran === 'Hutang') {
-
-            $hutang = Hutang::find($pengeluaran->refrensi_id);
-            if (!$hutang) {
-                return back()->withErrors('Data hutang tidak ditemukan');
+                default:
+                    $nominalBaru = $request->nominal_pengeluaran;
             }
 
-            // 🔁 rollback nominal lama (jika dulu aktif)
-            if ($statusLama !== 'Dibatalkan') {
-                $hutang->sisa_hutang += $nominalLama;
+            if ($nominalBaru <= 0) {
+                return back()->withErrors('Nominal tidak valid');
             }
 
-            if ($request->status === 'Dibatalkan') {
-                $hutang->status = 'Belum Lunas';
-                $hutang->tanggal_bayar = null;
-            } else {
-                $sisaBaru = $hutang->sisa_hutang - $nominalBaru;
+            // ================== HUTANG ==================
+            if ($request->jenis_pengeluaran === 'Hutang') {
 
-                if ($sisaBaru < 0) {
-                    return back()->withErrors('Nominal melebihi sisa hutang');
+                $hutang = Hutang::find($pengeluaran->refrensi_id);
+                if (!$hutang) {
+                    return back()->withErrors('Data hutang tidak ditemukan');
                 }
 
-                $hutang->sisa_hutang = $sisaBaru;
+                // 🔁 rollback nominal lama (jika dulu aktif)
+                if ($statusLama !== 'Dibatalkan') {
+                    $hutang->sisa_hutang += $nominalLama;
+                }
 
-                if ($sisaBaru == 0) {
-                    $hutang->status = 'Lunas';
-                    $hutang->tanggal_bayar = $request->tanggal;
-                } else {
+                if ($request->status === 'Dibatalkan') {
                     $hutang->status = 'Belum Lunas';
                     $hutang->tanggal_bayar = null;
+                } else {
+                    $sisaBaru = $hutang->sisa_hutang - $nominalBaru;
+
+                    if ($sisaBaru < 0) {
+                        return back()->withErrors('Nominal melebihi sisa hutang');
+                    }
+
+                    $hutang->sisa_hutang = $sisaBaru;
+
+                    if ($sisaBaru == 0) {
+                        $hutang->status = 'Lunas';
+                        $hutang->tanggal_bayar = $request->tanggal;
+                    } else {
+                        $hutang->status = 'Belum Lunas';
+                        $hutang->tanggal_bayar = null;
+                    }
                 }
+
+                $hutang->save();
             }
+            $idUser = Auth::id();
 
-            $hutang->save();
+            // ================== UPDATE PENGELUARAN ==================
+            $pengeluaran->update([
+                'tanggal' => $request->tanggal,
+                'jenis_pengeluaran' => $request->jenis_pengeluaran,
+                'refrensi_id' => $request->refrensi_id ?? 0,
+                'tujuan_pengeluaran' => $request->tujuan_pengeluaran ?? $request->jenis_pengeluaran,
+                'nominal_pengeluaran' => $nominalBaru,
+                'gaji_pokok' => $request->gaji_pokok,
+                'potongan' => $request->potongan,
+                'bonus' => $request->bonus,
+                'user_id' => $idUser,
+                'status' => $request->status,
+            ]);
+
+            return back()->with('success', 'Pengeluaran berhasil diperbarui');
+        } catch (\Throwable $e) {
+
+            \Log::error('ERROR UPDATE PENGELUARAN', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return back()->with('error', 'Terjadi kesalahan saat update data: ' . $e->getMessage());
         }
-        $idUser = Auth::id();
-
-        // ================== UPDATE PENGELUARAN ==================
-        $pengeluaran->update([
-            'tanggal' => $request->tanggal,
-            'jenis_pengeluaran' => $request->jenis_pengeluaran,
-            'refrensi_id' => $request->refrensi_id ?? 0,
-            'tujuan_pengeluaran' => $request->tujuan_pengeluaran ?? $request->jenis_pengeluaran,
-            'nominal_pengeluaran' => $nominalBaru,
-            'gaji_pokok' => $request->gaji_pokok,
-            'potongan' => $request->potongan,
-            'bonus' => $request->bonus,
-            'user_id' => $idUser,
-            'status' => $request->status,
-        ]);
-
-        return back()->with('success', 'Pengeluaran berhasil diperbarui');
     }
 
 

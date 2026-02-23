@@ -357,6 +357,15 @@
                         timer: 2000
                     });
                 @endif
+                @if (session('error'))
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Berhasil!',
+                        text: '{{ session('error') }}',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                @endif
 
                 // ✅ Notifikasi tambah berhasil
                 @if (session('updated'))
