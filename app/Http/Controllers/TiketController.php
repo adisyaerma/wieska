@@ -142,57 +142,30 @@ class TiketController extends Controller
         return redirect()->back()->with('updated', 'Detail tiket berhasil diperbarui.');
     }
 
+
     public function struk($id)
     {
-        try {
-            // ✅ Ambil tiket beserta relasinya
-            $tiket = Tiket::with(['details.jenisTiket', 'karyawan'])->findOrFail($id);
+        $tiket = Tiket::with(['details.jenisTiket', 'karyawan'])->findOrFail($id);
 
-            if ($tiket->details->isEmpty()) {
-                return back()->with('error', 'Tidak ada detail tiket untuk transaksi ini.');
-            }
-
-            // ✅ Filter hanya tiket masuk
-            $tiketMasukDetails = $tiket->details->filter(function ($detail) {
-                return strtolower(trim($detail->jenisTiket->jenis_tiket ?? '')) === 'tiket masuk';
-            });
-
-            if ($tiketMasukDetails->isEmpty()) {
-                return back()->with('warning', 'Transaksi ini tidak memiliki tiket masuk.');
-            }
-
-            // ✅ Buat daftar tiket sesuai jumlah
-            $tiketMasukList = collect();
-
-            foreach ($tiketMasukDetails as $detail) {
-                if (!$detail->jenisTiket || $detail->jumlah < 1)
-                    continue;
-
-                for ($i = 1; $i <= $detail->jumlah; $i++) {
-                    $tiketMasukList->push([
-                        'no_tiket' => strtoupper(uniqid('WSK-')),
-                        'harga' => $detail->jenisTiket->harga,
-                        'tanggal' => $tiket->tanggal,
-                        'kasir' => $tiket->karyawan->nama ?? 'Kasir',
-                        'nama_pelanggan' => $tiket->nama_pelanggan ?? 'Tamu',
-                    ]);
-                }
-            }
-
-            if ($tiketMasukList->isEmpty()) {
-                return back()->with('error', 'Tidak ada tiket masuk yang valid untuk ditampilkan.');
-            }
-
-            // ✅ Kirim ke view
-            return view('admin.struk_tiket', compact('tiket', 'tiketMasukList'));
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return back()->with('error', 'Data tiket tidak ditemukan.');
-        } catch (\Throwable $e) {
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        if ($tiket->details->isEmpty()) {
+            abort(404, 'Detail tiket tidak ditemukan');
         }
+
+        $tiketMasukList = collect();
+
+        foreach ($tiket->details as $detail) {
+            for ($i = 1; $i <= $detail->jumlah; $i++) {
+                $tiketMasukList->push([
+                    'no_tiket' => strtoupper(uniqid('WSK-')),
+                    'harga' => $detail->jenisTiket->harga,
+                    'tanggal' => $tiket->tanggal,
+                    'kasir' => $tiket->karyawan->nama ?? 'Kasir',
+                    'nama_pelanggan' => $tiket->nama_pelanggan ?? 'Tamu',
+                    'jenis_tiket' => $detail->jenisTiket->jenis_tiket,
+                ]);
+            }
+        }
+
+        return view('admin.struk_tiket', compact('tiket', 'tiketMasukList'));
     }
-
-
-
-
 }
