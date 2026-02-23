@@ -15,7 +15,6 @@ class KasController extends Controller
 {
     public function index()
     {
-
                // Tiket
         $tiket = DB::table('tiket')
             ->select(
