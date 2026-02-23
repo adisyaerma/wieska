@@ -49,6 +49,50 @@
         .right {
             text-align: right;
         }
+
+        .btn-kasir {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 10px 20px;
+            background-color: #989b9d;
+            /* abu Bootstrap */
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+
+            border-radius: 6px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.25s ease;
+        }
+
+        /* Hover effect */
+        .btn-kasir:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+            color: #ffffff;
+        }
+
+        /* Active / klik */
+        .btn-kasir:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Fokus (aksesibilitas) */
+        .btn-kasir:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.4);
+        }
+
+        @media print {
+            .btn-kasir {
+                display: none;
+            }
+        }
     </style>
 
 </head>
@@ -83,7 +127,7 @@
 
     {{-- Daftar Pesanan --}}
     <table>
-        @foreach($cafe->details as $d)
+        @foreach ($cafe->details as $d)
             <tr>
                 <td colspan="2">{{ $d->menu->stokBarang->nama_barang }}</td>
             </tr>
@@ -116,6 +160,13 @@
 
     <div class="center">
         <p>~ Terima Kasih ~</p>
+    </div>
+
+
+    <div class="text-center btn-kembali" style="text-align: center; margin-top: 25px;">
+        <a href="{{ route('kasir_cafe') }}" class="btn btn-secondary btn-sm btn-kasir">
+            Kembali ke Kasir
+        </a>
     </div>
 </body>
 
