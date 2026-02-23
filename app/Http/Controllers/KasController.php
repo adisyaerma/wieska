@@ -16,16 +16,7 @@ class KasController extends Controller
     public function index()
     {
 
-        // Hutang (hanya yang Lunas)
-        // $hutang = DB::table('hutang')
-        //     ->select(
-        //         'tanggal',
-        //         DB::raw('SUM(total_hutang) as total')
-        //     )
-        //     // ->where('status', 'Belum Lunas')
-        //     ->groupBy('tanggal');
-
-        // Tiket
+               // Tiket
         $tiket = DB::table('tiket')
             ->select(
                 'tanggal',
@@ -51,8 +42,7 @@ class KasController extends Controller
             ->groupBy('tanggal');
 
         // Gabung semua kas masuk
-        $kasMasukUnion = $hutang
-            ->unionAll($tiket)
+        $kasMasukUnion = $tiket
             ->unionAll($cafe)
             ->unionAll($booking);
 
@@ -169,26 +159,11 @@ class KasController extends Controller
                 ];
             });
 
-        // HUTANG DIBAYAR (MASUK)
-        $hutang = Hutang::whereDate('tanggal', $tanggal)
-            //->join('karyawan', 'hutang.id_karyw', '=', 'karyawan.id')
-            ->get()
-            ->map(function ($h) {
-                return [
-                    'tanggal'     => $h->tanggal,
-                    'sumber'      => 'Hutang',
-                    'keterangan'  => 'Hutang ke ' . $h->pihak,
-                    'total'       => $h->total_hutang,
-                    'petugas'     => '-',
-                ];
-            });
-
-        // 🔥 GABUNG SEMUA (COLLECTION)
+               // 🔥 GABUNG SEMUA (COLLECTION)
         $kasMasuk = collect()
             ->merge($tiket)
             ->merge($cafe)
             ->merge($booking)
-            ->merge($hutang)
             ->sortBy('tanggal')
             ->values();
 
