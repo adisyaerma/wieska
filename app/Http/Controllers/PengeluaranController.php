@@ -32,7 +32,7 @@ class PengeluaranController extends Controller
             ->orderBy('pengeluarans.tanggal', 'desc')
             ->get();
         $karyawan = Karyawan::all();
-        $hutang = Hutang::where('status', '!=', 'Belum Lunas')->get();
+        $hutang = Hutang::where('sisa_hutang', '>', 0)->get();
         $hutang_edit = Hutang::all();
         return view('admin.pengeluaran.index', compact('data', 'karyawan', 'hutang', 'hutang_edit'));
     }
