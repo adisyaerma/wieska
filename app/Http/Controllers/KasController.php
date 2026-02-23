@@ -17,13 +17,13 @@ class KasController extends Controller
     {
 
         // Hutang (hanya yang Lunas)
-        $hutang = DB::table('hutang')
-            ->select(
-                'tanggal',
-                DB::raw('SUM(total_hutang) as total')
-            )
-            // ->where('status', 'Belum Lunas')
-            ->groupBy('tanggal');
+        // $hutang = DB::table('hutang')
+        //     ->select(
+        //         'tanggal',
+        //         DB::raw('SUM(total_hutang) as total')
+        //     )
+        //     // ->where('status', 'Belum Lunas')
+        //     ->groupBy('tanggal');
 
         // Tiket
         $tiket = DB::table('tiket')
